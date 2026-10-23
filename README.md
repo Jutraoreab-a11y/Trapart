@@ -32,3 +32,4 @@ Les données sont enregistrées dans le navigateur (localStorage). Publiée comm
 ## Avertissement
 
 Les calculs fiscaux sont indicatifs (taux réglables dans les paramètres) et ne remplacent pas l'avis d'un expert-comptable ou d'un avocat fiscaliste.
+# Trapart
