@@ -1,10 +1,10 @@
-# Trapart
+# FALT
 
 Cockpit patrimonial pour dirigeants, fondateurs et business angels : cinq applications interconnectées.
 
 | Application | Rôle |
 |---|---|
-| **Trapart** | Application centrale : patrimoine consolidé (Orbis) et optimisation fiscale (Fiscool) |
+| **FALT** | Application centrale : patrimoine consolidé (Orbis) et optimisation fiscale (Fiscool) |
 | **Domum** | Immobilier et SCI : crédits (in fine, amortissement constant, annuité constante), tableau d'amortissement, régimes fiscaux, IFI |
 | **Falco Core** | Participations, trésorerie pro et CCA, synchronisation avec Falco |
 | **Tivra** | Titres financiers : 12 classes d'actifs, Grecques, YTM, vesting, cours en temps réel par clé API |
@@ -32,4 +32,4 @@ Les données sont enregistrées dans le navigateur (localStorage). Publiée comm
 ## Avertissement
 
 Les calculs fiscaux sont indicatifs (taux réglables dans les paramètres) et ne remplacent pas l'avis d'un expert-comptable ou d'un avocat fiscaliste.
-# Trapart
+# FALT
