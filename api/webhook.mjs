@@ -11,8 +11,9 @@ const periodEnd = sub => {
 };
 const rowFromSub = (sub, extra = {}) => ({
   user_id: sub.metadata && sub.metadata.user_id,
-  plan: (sub.metadata && sub.metadata.plan) || "pack",
-  modules: ((sub.metadata && sub.metadata.modules) || "m1,m2,m3,m4").split(",").filter(Boolean),
+  plan: (sub.metadata && sub.metadata.plan) === "essentiel" ? "essentiel" : "dirigeant",
+  billing: (sub.metadata && sub.metadata.billing) === "mensuel" ? "mensuel" : "annuel",
+  fondateur: (sub.metadata && sub.metadata.fondateur) === "oui",
   status: sub.status,
   stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer && sub.customer.id,
   stripe_subscription_id: sub.id,

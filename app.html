@@ -543,7 +543,9 @@ body.privacy .money,body.privacy .big,body.privacy .kc b,body.privacy .lg .v,bod
 /* =========================================================
    TRAPART V1 — Immo, Equity, Titres, Cash
    ========================================================= */
-const PRICE_MODULE = 49.99, PRICE_PACK = 169;
+const PLANS = {
+  essentiel:{nom:"Essentiel", m:39, y:390, desc:"Immo, Titres, Cash et vue d'ensemble"},
+  dirigeant:{nom:"Dirigeant", m:149, y:1490, desc:"Tout l'Essentiel, plus Equity avec import FEC, plusieurs sociétés et Fiscool"} };
 const MKEYS = ["m3","m1","m2","m4"];
 const ALLOC_TYPES = ["PEA","Assurance-vie","PER","Contrat de capitalisation"];
 const LIQ = ["Livret A / LDDS","Autre livret / compte à terme","Liquidités (compte courant)"];
@@ -775,7 +777,7 @@ const ICON = {
 };
 
 /* ---------- État ---------- */
-const blank = () => ({ v:4, pack:true, subs:{m1:true,m2:true,m3:true,m4:true},
+const blank = () => ({ v:5, plan:"dirigeant", billing:"annuel", pack:true, subs:{m1:true,m2:true,m3:true,m4:true},
   profile:{prenom:"",nom:"",email:"",tel:"",naissance:"",profession:"",societe:"",situation:"",regime:"",enfants:"",residence:"France",tmi:""},
   prefs:{theme:"", excl:{}, multiple:5, masquer:false, alerteIFI:true, rapport:true, alertes:true, inflation:2, psFoncier:17.2},
   falco:{status:"none", key:"", lastSync:"", count:0},
@@ -796,7 +798,7 @@ function clean(o){
   r.items.m1.forEach(i=>{ if(!i.methode && num(i.ebitda)>0) i.methode="Multiple d'EBITDA"; });
   r.subs=Object.assign(b.subs,{m1:!!o?.subs?.m1,m2:!!o?.subs?.m2,m3:!!o?.subs?.m3,m4:!!o?.subs?.m4});
   r.profile=Object.assign(blank().profile,o?.profile||{}); r.prefs=Object.assign(blank().prefs,o?.prefs||{});
-  r.fisc=Object.assign(blank().fisc,o?.fisc||{}); r.falco=Object.assign(blank().falco,o?.falco||{}); r.api=Object.assign(blank().api,o?.api||{}); r.hist=Array.isArray(o?.hist)?o.hist:[]; r.histDemo=!!o?.histDemo;
+  r.fisc=Object.assign(blank().fisc,o?.fisc||{}); r.falco=Object.assign(blank().falco,o?.falco||{}); if(!o || !o.plan){ r.plan = (o && o.pack===false) ? (o.subs && ['m2','m3','m4'].some(k=>o.subs[k]) ? 'essentiel' : '') : 'dirigeant'; } if(r.billing!=='mensuel') r.billing='annuel'; r.api=Object.assign(blank().api,o?.api||{}); r.hist=Array.isArray(o?.hist)?o.hist:[]; r.histDemo=!!o?.histDemo;
   return r;
 }
 function loadLocal(){ try{ const r = localStorage.getItem("cockpit-fiscool"); if(r) S = clean(JSON.parse(r)); }catch(e){} }
@@ -832,7 +834,11 @@ const num = v => { const n = parseFloat(String(v??"").replace(/\s/g,"").replace(
 const has0 = v => v!==undefined && v!==null && String(v).trim()!=="";
 const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uidGen = () => Math.random().toString(36).slice(2,10);
-const has = k => S.pack || S.subs[k];
+const isDir = () => S.plan==="dirigeant";
+const hasOverview = () => S.plan==="dirigeant" || S.plan==="essentiel";
+const has = k => isDir() || (S.plan==="essentiel" && k!=="m1");
+const planLabel = () => S.plan ? "Offre "+PLANS[S.plan].nom : "Aucune offre";
+const billLabel = () => S.billing==="mensuel" ? "facturation mensuelle" : "facturation annuelle";
 const reduced = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 function toast(t){ const el=document.getElementById("toast"); el.textContent=t; el.classList.add("on"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("on"),2400); }
 const TODAY = new Date();
@@ -1206,7 +1212,7 @@ function renderHeader(){
     <div class="rsep"></div>
     ${nav("orbis","Orbis",`<span class="ct">${nAl||""}</span>`)}${nav("fiscool","Fiscool")}
     <div class="rfoot">
-      <button class="plan" data-prof="abonnement"><b>${S.pack?"Pack Intégral":"Formule à la carte"}</b><span>${S.pack?"5 applications":MKEYS.filter(k=>S.subs[k]).length+" application(s) active(s)"} · gérer l'abonnement</span></button>
+      <button class="plan" data-prof="abonnement"><b>${planLabel()}</b><span>${S.plan?billLabel():"choisir une offre"} · gérer l'abonnement</span></button>
       <button class="rnav" data-prof="parametres" ${page==="profil"?'aria-current="page"':''}><span style="width:30px;height:30px;display:grid;place-items:center">${ICON.gear}</span><span>Paramètres</span></button>
       <div class="rsync" id="rsync"></div>
     </div>`;
@@ -1218,9 +1224,9 @@ function renderHeader(){
     <button class="tbtn hs" data-act="theme" aria-label="Changer de thème" title="Changer de thème">${isDark()?ICON.sun:ICON.moon}</button>
     <button class="tbtn" data-go="orbis" aria-label="Points d'attention, ${nAl}">${ICON.bell}${nAl?'<span class="tdot"></span>':""}</button>
     <div style="position:relative">
-      <button class="pbtn" data-act="menu" aria-haspopup="menu" aria-expanded="${menuOpen}" aria-label="Profil">${avatar()}<span class="nm"><b>${esc(fullName())}</b><small>${S.pack?"Pack Intégral":"Formule à la carte"}</small></span>${ICON.chev}</button>
+      <button class="pbtn" data-act="menu" aria-haspopup="menu" aria-expanded="${menuOpen}" aria-label="Profil">${avatar()}<span class="nm"><b>${esc(fullName())}</b><small>${planLabel()}</small></span>${ICON.chev}</button>
       ${menuOpen?`<div class="pmenu" role="menu">
-        <div class="who">${avatar()}<div><b style="color:var(--ink)">${esc(fullName())}</b><small>${esc(S.profile.email||"Ajoutez votre e-mail")}</small><small>${S.pack?"Pack Intégral":MKEYS.filter(k=>S.subs[k]).length+" application(s) active(s)"}</small></div></div>
+        <div class="who">${avatar()}<div><b style="color:var(--ink)">${esc(fullName())}</b><small>${esc(S.profile.email||"Ajoutez votre e-mail")}</small><small>${planLabel()}</small></div></div>
         <button class="mitem" role="menuitem" data-prof="infos">Informations personnelles</button>
         <button class="mitem" role="menuitem" data-prof="abonnement">Abonnement</button>
         <button class="mitem" role="menuitem" data-prof="parametres">Paramètres</button>
@@ -1242,9 +1248,9 @@ function render(){
   applyTheme(); recordHist(); renderHeader(); renderFoot();
   document.body.classList.toggle("privacy", !!S.prefs.masquer);
   const m = document.getElementById("main");
-  if(page==="cockpit"){ m.innerHTML = S.pack ? pageDashboard() : prodHead("cockpit") + lockedPack(); if(S.pack) setTimeout(drawHero,0); }
-  else if(page==="orbis") m.innerHTML = prodHead("orbis") + (S.pack ? pageOrbis() : lockedPack());
-  else if(page==="fiscool") m.innerHTML = prodHead("fiscool") + (S.pack ? pageFiscool() : lockedPack());
+  if(page==="cockpit"){ m.innerHTML = hasOverview() ? pageDashboard() : prodHead("cockpit") + lockedPack(); if(hasOverview()) setTimeout(drawHero,0); }
+  else if(page==="orbis") m.innerHTML = prodHead("orbis") + (hasOverview() ? pageOrbis() : lockedPack());
+  else if(page==="fiscool") m.innerHTML = prodHead("fiscool") + (isDir() ? pageFiscool() : lockedDir("Fiscool"));
   else if(page==="profil") m.innerHTML = pageProfil();
   else if(page==="item") m.innerHTML = pageItem();
   else m.innerHTML = has(page) ? pageModule(page) : lockedModule(page);
@@ -1257,13 +1263,15 @@ function prodHead(k, extra){
   return `<header class="phead">${k==="cockpit"?"":logo(k,48)}<div><h1>${P.brand}</h1></div><span class="spacer"></span>${sw}${back}</header>`;
 }
 function lockedPack(){
-  return `<div class="locked"><h2>Disponible avec le Pack Intégral</h2><p class="muted">FALT consolide Immo, Equity, Titres et Cash, avec Orbis et Fiscool. Les cinq applications pour ${PRICE_PACK} € HT par mois.</p>
-  <button class="btn primary" data-act="pack-on">Activer le Pack Intégral</button></div>`;
+  return `<div class="locked"><h2>Choisissez une offre</h2><p class="muted">La vue d'ensemble est incluse dans les deux offres : Essentiel à ${PLANS.essentiel.m} € HT par mois, Dirigeant à ${PLANS.dirigeant.m} € HT par mois.</p>
+  <button class="btn primary" data-prof="abonnement">Voir les offres</button></div>`;
+}
+function lockedDir(what){
+  return `<div class="locked"><h2>${what} est inclus dans l'offre Dirigeant</h2><p class="muted">L'offre Dirigeant ajoute Equity avec l'import FEC, plusieurs sociétés et Fiscool, pour ${PLANS.dirigeant.m} € HT par mois ou ${PLANS.dirigeant.y.toLocaleString("fr-FR")} € HT par an.</p>
+  <div class="row" style="justify-content:center"><button class="btn primary" data-act="plan-set" data-plan="dirigeant">Passer à l'offre Dirigeant</button><button class="btn" data-prof="abonnement">Comparer les offres</button></div></div>`;
 }
 function lockedModule(k){
-  return prodHead(k) + `
-  <div class="locked"><h2>${PROD[k].brand} n'est pas activé</h2><p class="muted">${PRICE_MODULE.toLocaleString("fr-FR")} € HT par mois, ou inclus dans le Pack Intégral.</p>
-  <div class="row" style="justify-content:center"><button class="btn primary" data-act="sub-on" data-k="${k}">Activer ${PROD[k].brand}</button><button class="btn" data-prof="abonnement">Voir les formules</button></div></div>`;
+  return prodHead(k) + (k==="m1" ? lockedDir("Equity") : lockedPack());
 }
 const kpi = (l,n,s,hl) => `<div class="kpi ${hl?"hl":""}"><div class="l">${l}</div><div class="n">${n}</div>${s?`<div class="s">${s}</div>`:""}</div>`;
 
@@ -1393,7 +1401,7 @@ function alerts(t){
   return a;
 }
 function recordHist(){
-  if(!S.pack) return;
+  if(!hasOverview()) return;
   const t=totals(); if(!(t.brut>0)) return;
   const d=new Date(), iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   const per={}; MKEYS.forEach(k=>{ per[k]=has(k)?Math.round(S.items[k].reduce((s,it)=>s+itemValue(k,it)-(k==="m3"?m3(it).debt:0),0)):0; });
@@ -1901,7 +1909,7 @@ function pageFiscool(){
 function pageProfil(){
   const p=S.profile, tabs=[["infos","Informations personnelles"],["abonnement","Abonnement"],["parametres","Paramètres"]];
   const head = `<header class="phead">${avatar(true)}<div><h1>${esc(fullName())}</h1><div class="ptag">${esc([p.profession,p.societe].filter(Boolean).join(", ")||"Complétez votre profil pour personnaliser les recommandations")}</div></div>
-    <span class="chip"><span class="live"></span>${S.pack?"Pack Intégral":"Formule à la carte"}</span></header>
+    <span class="chip"><span class="live"></span>${planLabel()}</span></header>
     <nav class="ptabs" role="tablist">${tabs.map(([id,l])=>`<button role="tab" data-prof="${id}" aria-selected="${ptab===id}">${l}</button>`).join("")}</nav>`;
   if(ptab==="abonnement") return head + pageSubs();
   if(ptab==="parametres") return head + pageSettings();
@@ -1923,20 +1931,21 @@ function pageProfil(){
     <div class="row"><button class="btn primary" type="submit">Enregistrer le profil</button></div></form>`;
 }
 function pageSubs(){
-  const cnt = MKEYS.filter(k=>S.subs[k]).length, alc = cnt*PRICE_MODULE, cost = S.pack ? PRICE_PACK : alc;
-  return `<p class="lede">Cinq applications indépendantes et interconnectées. Activez Immo, Equity, Titres et Cash à la carte, ou réunissez-les avec FALT dans le Pack Intégral. Mode démonstration : aucune facturation n'est déclenchée.</p>
-  <div class="card ${S.pack?"amber":""}" style="margin-bottom:16px"><div class="row">
-    ${logo("cockpit",48)}<div style="flex:1;min-width:200px"><h2 style="margin:0">Pack Intégral</h2><div class="muted">FALT (avec Orbis et Fiscool), Immo, Equity, Titres et Cash · ${PRICE_PACK} € HT / mois</div></div>
-    <label class="switch"><input type="checkbox" data-act="pack" ${S.pack?"checked":""} aria-label="Pack Intégral"><span></span></label></div></div>
-  <div class="prodgrid">
-    <div class="prodcard">${logo("cockpit",44)}<div><div class="small muted">Vue d'ensemble, Orbis et Fiscool</div></div><div class="small muted" style="margin-top:auto">${S.pack?"Inclus dans le pack":"Uniquement avec le Pack Intégral"}</div></div>
-    ${MKEYS.map(k=>`<div class="prodcard"><div class="row">${logo(k,44)}<span class="spacer"></span>
-      <label class="switch"><input type="checkbox" data-act="sub" data-k="${k}" ${S.subs[k]||S.pack?"checked":""} ${S.pack?"disabled":""} aria-label="${PROD[k].brand}"><span></span></label></div>
-      <div><b>${PROD[k].brand}</b><div class="small muted">${PROD[k].tag}</div></div>
-      <div class="small muted" style="margin-top:auto">${S.pack?"Inclus dans le pack":PRICE_MODULE.toLocaleString("fr-FR")+" € HT / mois"}</div></div>`).join("")}
-  </div>
-  <div class="card" style="margin-top:16px"><div class="kv"><span>Total mensuel</span><b class="price" style="font-size:26px">${cost.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})} € HT</b></div>
-    ${!S.pack&&alc>PRICE_PACK?`<div class="alert" style="margin-top:10px">Vos applications à la carte coûtent plus cher que le Pack Intégral. <button class="btn" data-act="pack-on" style="margin-left:6px">Passer au pack</button></div>`:""}</div>`;
+  const y = S.billing!=="mensuel";
+  const card = k => { const P=PLANS[k], cur=S.plan===k;
+    return `<div class="card ${cur?"amber":""}" style="display:flex;flex-direction:column;gap:12px">
+      <div class="row"><h2 style="margin:0">${P.nom}</h2><span class="spacer"></span>${cur?`<span class="chip"><span class="live"></span>Votre offre</span>`:""}</div>
+      <div class="price" style="font-size:34px">${(y?P.y:P.m).toLocaleString("fr-FR")} € <span class="small muted" style="font-size:14px">HT / ${y?"an":"mois"}</span></div>
+      <div class="small muted">${y?`soit ${(P.y/12).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})} € HT par mois, 2 mois offerts`:`ou ${P.y.toLocaleString("fr-FR")} € HT par an, 2 mois offerts`}</div>
+      <p class="muted" style="margin:0">${P.desc}.</p>
+      ${cur?`<button class="btn" disabled>Offre actuelle</button>`:`<button class="btn ${k==="dirigeant"?"primary":""}" data-act="plan-set" data-plan="${k}">Choisir ${P.nom}</button>`}
+    </div>`; };
+  return `<p class="lede">Deux offres, sans engagement, avec 14 jours d'essai gratuit. Le paiement en ligne sera activé prochainement : aucune facturation n'est déclenchée pour l'instant.</p>
+  <div class="row" style="margin-bottom:16px"><div class="dseg" role="group" aria-label="Facturation" style="margin-left:0">
+    <button data-act="bill-set" data-bill="mensuel" aria-pressed="${!y}">Mensuel</button><button data-act="bill-set" data-bill="annuel" aria-pressed="${y}">Annuel · 2 mois offerts</button></div></div>
+  <div class="pair">${card("essentiel")}${card("dirigeant")}</div>
+  <div class="card" style="margin-top:16px"><div class="kv"><span>Membres fondateurs</span><b>${y?"890 € HT / an":"89 € HT / mois"} pour l'offre Dirigeant</b></div>
+    <p class="small muted" style="margin:8px 0 0">Réservé aux 50 premiers clients, prix garanti tant que l'abonnement reste actif.</p></div>`;
 }
 function pageSettings(){
   const P=S.prefs, sw=(k)=>`<label class="switch"><input type="checkbox" data-pref="${k}" ${P[k]?"checked":""}><span></span></label>`;
@@ -2180,7 +2189,7 @@ function demo(){
           {nom:"Livret A + LDDS",type:"Livret A / LDDS",valeur:"34950",mensuel:"0",taux:"1.5"},
           {nom:"Compte courant perso",type:"Liquidités (compte courant)",valeur:"48000",mensuel:"0",taux:"0"}]);
   S.profile=Object.assign(S.profile,{prenom:"Alexandre",nom:"Martin",email:"alexandre.martin@exemple.fr",profession:"Dirigeant",societe:"Atlas Industrie SAS",situation:"Marié(e)",regime:"Séparation de biens",enfants:"2",tmi:"41 %"});
-  S.pack=true; S.subs={m1:true,m2:true,m3:true,m4:true}; S.prefs.excl={};
+  S.plan="dirigeant"; S.pack=true; S.subs={m1:true,m2:true,m3:true,m4:true}; S.prefs.excl={};
   S.fisc={resultat:300000, distrib:100, besoin:60000, pfu:31.4, holding:true};
   S.falco.lastSync=new Date().toISOString(); S.pricesAt=new Date().toISOString();
   { const t=totals(), end=t.netTotal, n=420, r=(()=>{ let x=7; return ()=>{ x=(x*16807)%2147483647; return (x-1)/2147483646; }; })(); let v=end*.74; S.hist=[];
@@ -2261,7 +2270,9 @@ document.addEventListener("click", e=>{
     case "falco-oauth": toast("La connexion OAuth avec Falco nécessite le serveur FALT. Utilisez l'import d'export Falco en attendant."); break;
     case "demo": demo(); break;
     case "splash": showSplash(); break;
-    case "pack-on": S.pack=true; persist(); render(); toast("Pack Intégral activé"); break;
+    case "pack-on": S.plan="dirigeant"; persist(); render(); toast("Offre Dirigeant activée"); break;
+    case "plan-set": { const pl=a.dataset.plan; if(PLANS[pl]){ S.plan=pl; S.pack=pl==="dirigeant"; persist(); render(); toast("Offre "+PLANS[pl].nom+" activée"); } break; }
+    case "bill-set": S.billing=a.dataset.bill==="mensuel"?"mensuel":"annuel"; persist(); render(); break;
     case "sub-on": S.subs[k]=true; persist(); render(); toast(PROD[k].brand+" activé"); break;
     case "ai": runAI(); break;
     case "export": { const ex=JSON.parse(JSON.stringify(S)); if(ex.api) ex.api.key=ex.api.key?"(masquée)":""; const blob=JSON.stringify(ex,null,2); menuOpen=false; renderHeader();

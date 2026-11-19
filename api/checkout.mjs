@@ -1,11 +1,16 @@
 // Ouvre une session de paiement Stripe Checkout pour l'utilisateur connecté.
-// Variables : STRIPE_SECRET_KEY, STRIPE_PRICE_PACK, STRIPE_PRICE_MODULE, (option) STRIPE_AUTOMATIC_TAX=1
+// Variables :
+//   STRIPE_SECRET_KEY
+//   STRIPE_PRICE_ESSENTIEL_MENSUEL, STRIPE_PRICE_ESSENTIEL_ANNUEL
+//   STRIPE_PRICE_DIRIGEANT_MENSUEL, STRIPE_PRICE_DIRIGEANT_ANNUEL
+//   STRIPE_PRICE_FONDATEUR_MENSUEL, STRIPE_PRICE_FONDATEUR_ANNUEL (offre Dirigeant à tarif fondateur)
+//   STRIPE_AUTOMATIC_TAX=1 (facultatif, si Stripe Tax est activé)
 // Nécessite aussi Supabase (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) pour identifier le client.
 import { json, sameOrigin } from "../lib/http.mjs";
 import { stripe } from "../lib/stripe.mjs";
 import { userFromRequest, supabaseReady, getAbonnement } from "../lib/supabase.mjs";
 
-const MODULES = ["m1", "m2", "m3", "m4"];
+const TRIAL_DAYS = 14;
 
 export async function POST(request) {
   if (!sameOrigin(request)) return json({ error: "Origine non autorisée" }, 403);
@@ -14,23 +19,23 @@ export async function POST(request) {
   if (!user) return json({ error: "Connectez-vous pour vous abonner." }, 401);
   let body = {};
   try { body = await request.json(); } catch {}
-  const plan = body.plan === "carte" ? "carte" : "pack";
-  const modules = plan === "pack" ? MODULES : [...new Set((body.modules || []).filter(m => MODULES.includes(m)))];
-  if (plan === "carte" && !modules.length) return json({ error: "Choisissez au moins un module." }, 400);
-  const price = plan === "pack" ? process.env.STRIPE_PRICE_PACK : process.env.STRIPE_PRICE_MODULE;
+  const plan = body.plan === "essentiel" ? "essentiel" : "dirigeant";
+  const billing = body.billing === "mensuel" ? "MENSUEL" : "ANNUEL";
+  const fondateur = plan === "dirigeant" && body.fondateur === true;
+  const price = process.env[`STRIPE_PRICE_${fondateur ? "FONDATEUR" : plan.toUpperCase()}_${billing}`];
   if (!price) return json({ error: "Tarif Stripe non configuré." }, 503);
 
   const origin = new URL(request.url).origin;
   const existing = await getAbonnement(user.id);
-  const meta = { user_id: user.id, plan, modules: modules.join(",") };
+  const meta = { user_id: user.id, plan, billing: billing.toLowerCase(), fondateur: fondateur ? "oui" : "non" };
   try {
     const session = await stripe("POST", "checkout/sessions", {
       mode: "subscription",
-      line_items: { 0: { price, quantity: plan === "pack" ? 1 : modules.length } },
+      line_items: { 0: { price, quantity: 1 } },
       ...(existing && existing.stripe_customer_id ? { customer: existing.stripe_customer_id } : { customer_email: user.email }),
       client_reference_id: user.id,
       metadata: meta,
-      subscription_data: { metadata: meta },
+      subscription_data: { metadata: meta, ...(existing && existing.stripe_subscription_id ? {} : { trial_period_days: TRIAL_DAYS }) },
       allow_promotion_codes: "true",
       billing_address_collection: "required",
       tax_id_collection: { enabled: "true" },
