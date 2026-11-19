@@ -488,6 +488,14 @@ body.privacy .money,body.privacy .big,body.privacy .kc b,body.privacy .lg .v,bod
   .tbtn.hs{display:none}
   .fbar{grid-template-columns:96px minmax(0,1fr) auto}
 }
+.rsep{height:1px;background:var(--line);margin:12px 10px}
+.lgrow{display:flex;align-items:center;gap:6px}
+.lgrow .lg{flex:1;min-width:0}
+.lgrow .lg:disabled{cursor:default}
+.lgrow.det .lg{opacity:.5}
+.lgrow.det .lg:hover{background:none}
+.incl{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);font-weight:600;cursor:pointer}
+.phead{align-items:center}
 </style>
 </head>
 <body>
@@ -521,7 +529,7 @@ body.privacy .money,body.privacy .big,body.privacy .kc b,body.privacy .lg .v,bod
 
 <script>
 /* =========================================================
-   TRAPART V1 — Domum, Falco Core, Tivra, Envelo
+   TRAPART V1 — Immo, Equity, Titres, Cash
    ========================================================= */
 const PRICE_MODULE = 49.99, PRICE_PACK = 169;
 const MKEYS = ["m3","m1","m2","m4"];
@@ -589,7 +597,7 @@ const MODS = {
       {x:"preview"}
     ]},
   m1:{name:"Titres de participation", scol:"var(--s1)",
-    intro:"Parts de holding et de société d'exploitation, tickets Business Angel, comptes courants d'associés et trésorerie excédentaire. Valorisation par multiple d'EBITDA ou DCF, saisie à la main ou remontée depuis Falco.",
+    intro:"Parts de holding et de société d'exploitation, tickets Business Angel, comptes courants d'associés et trésorerie excédentaire. Importez le FEC de la société : valorisation, trésorerie et CCA se remplissent seuls.",
     types:["Holding","Société d'exploitation","Ticket Business Angel","Compte courant d'associé","Trésorerie pro"],
     reset:["methode"],
     fields:[
@@ -707,13 +715,13 @@ function DEF4(d){
   return {taux:1.5,frais:0};
 }
 const PROD = {
-  cockpit:{brand:"FALT", tag:"Patrimoine & fiscalité", grad:"gFalt", ink:"#fff"},
-  orbis:{brand:"Orbis", tag:"Vue patrimoniale détaillée", grad:"lg-orbis", ink:"#fff"},
-  fiscool:{brand:"Fiscool", tag:"Optimisation fiscale", grad:"lg-fiscool", ink:"#fff"},
-  m3:{brand:"Domum", tag:"Immobilier & SCI", grad:"lg-m3", ink:"#fff"},
-  m1:{brand:"Falco Core", tag:"Participations & trésorerie", grad:"lg-m1", ink:"#fff"},
-  m2:{brand:"Tivra", tag:"Titres & marchés", grad:"lg-m2", ink:"#fff"},
-  m4:{brand:"Envelo", tag:"Épargne & enveloppes", grad:"lg-m4", ink:"#fff"}
+  cockpit:{brand:"FALT", tag:"", grad:"gFalt", ink:"#fff"},
+  orbis:{brand:"Orbis", tag:"", grad:"lg-orbis", ink:"#fff"},
+  fiscool:{brand:"Fiscool", tag:"", grad:"lg-fiscool", ink:"#fff"},
+  m3:{brand:"Immo", tag:"", grad:"lg-m3", ink:"#fff"},
+  m1:{brand:"Equity", tag:"", grad:"lg-m1", ink:"#fff"},
+  m2:{brand:"Titres", tag:"", grad:"lg-m2", ink:"#fff"},
+  m4:{brand:"Cash", tag:"", grad:"lg-m4", ink:"#fff"}
 };
 function glyph(k, sw){
   sw = sw||1.9;
@@ -757,7 +765,7 @@ const ICON = {
 /* ---------- État ---------- */
 const blank = () => ({ v:4, pack:true, subs:{m1:true,m2:true,m3:true,m4:true},
   profile:{prenom:"",nom:"",email:"",tel:"",naissance:"",profession:"",societe:"",situation:"",regime:"",enfants:"",residence:"France",tmi:""},
-  prefs:{theme:"", multiple:5, masquer:false, alerteIFI:true, rapport:true, alertes:true, inflation:2, psFoncier:17.2},
+  prefs:{theme:"", excl:{}, multiple:5, masquer:false, alerteIFI:true, rapport:true, alertes:true, inflation:2, psFoncier:17.2},
   falco:{status:"none", key:"", lastSync:"", count:0},
   pricesAt:"",
   hist:[], histDemo:false,
@@ -827,7 +835,7 @@ const val = (it,f,def) => has0(it[f]) ? num(it[f]) : def;
 const fv = (it,k,f) => { const F=MODS[k].fields.find(x=>x.n===f); return has0(it[f]) ? num(it[f]) : num(F&&typeof F.d==="function"?F.d(it):F?.d); };
 function tmiOf(){ const t=num((S.profile.tmi||"").replace("%","")); return has0(S.profile.tmi)? t/100 : .30; }
 
-/* ---------- Domum : prêts ---------- */
+/* ---------- Immo : prêts ---------- */
 function sched(L){
   const P=num(L.montant), n=Math.round(num(L.duree)*12), r=num(L.taux)/100/12, insM=P*num(L.assurance)/100/12;
   if(!P||!n) return [];
@@ -959,7 +967,7 @@ function ifi(){
   return {base, tax, detail};
 }
 
-/* ---------- Tivra : marchés ---------- */
+/* ---------- Titres : marchés ---------- */
 function Ncdf(x){ const t=1/(1+.2316419*Math.abs(x)), d=.3989422804*Math.exp(-x*x/2); const p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274)))); return x>0?1-p:p; }
 const npdf = x => .3989422804*Math.exp(-x*x/2);
 function bs(type,S0,K,T,r,v){
@@ -1026,7 +1034,7 @@ function m2(it){
 }
 
 
-/* ---------- Tivra : données de marché ---------- */
+/* ---------- Titres : données de marché ---------- */
 function apiPanel(){
   const A=S.api, on=!!A.key;
   return `<div class="card" style="margin-bottom:16px"><div class="pair">
@@ -1072,10 +1080,10 @@ async function refreshPrices(){
   S.api.msg = out.blocked ? "appel bloqué par le navigateur : cette page publiée ne peut pas joindre les fournisseurs de données. Le serveur FALT relaiera ces appels en production."
     : `${out.ok} cours mis à jour${out.fail?`, ${out.fail} ticker${out.fail>1?"s":""} introuvable${out.fail>1?"s":""}`:""}${out.msgs.length?" ; "+out.msgs.join(", "):""}`;
   if(out.ok) S.pricesAt=S.api.last;
-  persist(); render(); toast(out.blocked?"Appel bloqué : voir le détail dans Tivra":`${out.ok} cours mis à jour`);
+  persist(); render(); toast(out.blocked?"Appel bloqué : voir le détail dans Titres":`${out.ok} cours mis à jour`);
 }
 
-/* ---------- Envelo : projections ---------- */
+/* ---------- Cash : projections ---------- */
 function rate4(it){
   const d=DEF4(it), g=f=>has0(it[f])?num(it[f]):(d[f]||0);
   let gross, alloc=null;
@@ -1143,7 +1151,7 @@ function horizonTable(data){
   ${[5,10,15,20,30].filter(h=>data[h]).map(h=>{ const d=data[h]; return `<tr${h===envH?' style="background:rgba(63,123,255,.05)"':""}><td style="color:var(--ink)">${h} ans</td><td class="num">${eur(d.nom)}</td><td class="num">${eur(d.reel)}</td><td class="num">${eur(d.inv)}</td><td class="num pos">${eur(d.nom-d.inv)}</td></tr>`; }).join("")}</tbody></table></div>`;
 }
 
-/* ---------- Falco Core ---------- */
+/* ---------- Equity ---------- */
 function m1v(it){
   const det = has0(it.detention) ? num(it.detention) : 100;
   const meth = it.methode || (num(it.ebitda)>0?"Multiple d'EBITDA":"Valeur saisie");
@@ -1158,13 +1166,15 @@ function m1v(it){
 /* ---------- Agrégats ---------- */
 function itemValue(k,it){ return k==="m3"?m3(it).value : k==="m1"?m1v(it) : k==="m2"?m2(it).value : num(it.valeur); }
 function totals(){
-  const t = {gross:{},liab:0,brut:0,netTotal:0};
+  const t = {gross:{},liab:0,brut:0,netTotal:0,off:[]};
   MKEYS.forEach(k=>{ t.gross[k]=0; if(!has(k)) return;
-    S.items[k].forEach(it=>{ t.gross[k]+=itemValue(k,it); if(k==="m3") t.liab+=m3(it).debt; }); });
-  t.brut = MKEYS.reduce((s,k)=>s+t.gross[k],0);
-  t.netTotal = t.brut - t.liab; t.pro = t.gross.m1; t.perso = t.netTotal - t.pro;
+    S.items[k].forEach(it=>{ t.gross[k]+=itemValue(k,it); if(k==="m3" && incl(k)) t.liab+=m3(it).debt; });
+    if(!incl(k)) t.off.push(k); });
+  t.brut = MKEYS.filter(incl).reduce((s,k)=>s+t.gross[k],0);
+  t.netTotal = t.brut - t.liab; t.pro = incl("m1")?t.gross.m1:0; t.perso = t.netTotal - t.pro;
   return t;
 }
+const incl = k => !(S.prefs.excl||{})[k];
 const sumType = (k,types) => has(k) ? S.items[k].filter(i=>types.includes(i.type)).reduce((s,i)=>s+itemValue(k,i),0) : 0;
 function isCalc(r){ r=Math.max(0,r); return Math.min(r,42500)*.15 + Math.max(0,r-42500)*.25; }
 function fiscool(){
@@ -1192,9 +1202,9 @@ function renderHeader(){
   document.getElementById("rail").innerHTML = `
     <button class="rbrand" data-go="cockpit" aria-label="FALT, accueil">${logo("cockpit",34)}<b>FALT</b></button>
     <button class="rnav" data-go="cockpit" ${curK==="cockpit"?'aria-current="page"':''}><span style="width:30px;height:30px;display:grid;place-items:center">${ICON.home}</span><span>Vue d'ensemble</span></button>
-    <div class="rlbl">Applications</div>
+    <div class="rsep"></div>
     ${MKEYS.map(k=>nav(k,PROD[k].brand,cnt(k))).join("")}
-    <div class="rlbl">Pilotage</div>
+    <div class="rsep"></div>
     ${nav("orbis","Orbis",`<span class="ct">${nAl||""}</span>`)}${nav("fiscool","Fiscool")}
     <div class="rfoot">
       <button class="plan" data-prof="abonnement"><b>${S.pack?"Pack Intégral":"Formule à la carte"}</b><span>${S.pack?"5 applications":MKEYS.filter(k=>S.subs[k]).length+" application(s) active(s)"} · gérer l'abonnement</span></button>
@@ -1203,7 +1213,7 @@ function renderHeader(){
     </div>`;
   document.getElementById("hdr").innerHTML = `
     <button class="mbrand" data-go="cockpit" aria-label="FALT, accueil">${logo("cockpit",32)}</button>
-    <button class="sfield" data-act="search" aria-label="Rechercher">${ICON.search}<span class="t">Rechercher un actif, un bien, une société…</span><span class="kbd">⌘ K</span></button>
+    <button class="sfield" data-act="search" aria-label="Rechercher">${ICON.search}<span class="t">Rechercher un actif, un bien, une société…</span><span class="kbd">Ctrl K</span></button>
     <span class="spacer"></span>
     <button class="tbtn" data-act="eye" aria-pressed="${!!S.prefs.masquer}" aria-label="${S.prefs.masquer?"Afficher les montants":"Masquer les montants"}" title="${S.prefs.masquer?"Afficher les montants":"Masquer les montants"}">${S.prefs.masquer?ICON.eyeoff:ICON.eye}</button>
     <button class="tbtn hs" data-act="theme" aria-label="Changer de thème" title="Changer de thème">${isDark()?ICON.sun:ICON.moon}</button>
@@ -1243,19 +1253,16 @@ function render(){
 }
 function prodHead(k, extra){
   const P=PROD[k], inner = (k==="orbis"||k==="fiscool");
-  const chip = k==="cockpit" ? `<span class="chip"><span class="live"></span>4 applications connectées</span>`
-             : inner ? `<span class="chip">Module de FALT</span>`
-             : k==="m1" && S.falco.status==="synced" ? `<span class="chip"><span class="live"></span>Synchronisé avec Falco</span>`
-             : `<span class="chip"><span class="live"></span>Connecté à FALT</span>`;
-  const back = inner ? `<span class="spacer"></span><button class="btn" data-go="cockpit">Retour au tableau de bord</button>` : (extra?`<span class="spacer"></span>${extra}`:"");
-  return `<header class="phead">${logo(k,56)}<div><h1>${P.brand}</h1><div class="ptag">${P.tag}</div></div>${chip}${back}</header>`;
+  const sw = MODS[k] && has(k) ? `<label class="incl" title="Compter ce module dans le patrimoine"><span>Inclus dans le patrimoine</span><span class="switch"><input type="checkbox" data-incl="${k}" ${incl(k)?"checked":""}><span></span></span></label>` : "";
+  const back = inner ? `<button class="btn" data-go="cockpit">Retour au tableau de bord</button>` : (extra||"");
+  return `<header class="phead">${logo(k,48)}<div><h1>${P.brand}</h1></div><span class="spacer"></span>${sw}${back}</header>`;
 }
 function lockedPack(){
-  return `<div class="locked"><h2>Disponible avec le Pack Intégral</h2><p class="muted">FALT consolide Domum, Falco Core, Tivra et Envelo, avec Orbis et Fiscool. Les cinq applications pour ${PRICE_PACK} € HT par mois.</p>
+  return `<div class="locked"><h2>Disponible avec le Pack Intégral</h2><p class="muted">FALT consolide Immo, Equity, Titres et Cash, avec Orbis et Fiscool. Les cinq applications pour ${PRICE_PACK} € HT par mois.</p>
   <button class="btn primary" data-act="pack-on">Activer le Pack Intégral</button></div>`;
 }
 function lockedModule(k){
-  return prodHead(k) + `<p class="lede">${MODS[k].intro}</p>
+  return prodHead(k) + `
   <div class="locked"><h2>${PROD[k].brand} n'est pas activé</h2><p class="muted">${PRICE_MODULE.toLocaleString("fr-FR")} € HT par mois, ou inclus dans le Pack Intégral.</p>
   <div class="row" style="justify-content:center"><button class="btn primary" data-act="sub-on" data-k="${k}">Activer ${PROD[k].brand}</button><button class="btn" data-prof="abonnement">Voir les formules</button></div></div>`;
 }
@@ -1377,28 +1384,31 @@ function alerts(t){
   if(S.prefs.alerteIFI){ if(I.base>1300000) a.push(`Assiette IFI estimée à ${eur(I.base)} : impôt indicatif de ${eur(I.tax)}. Vérifiez l'exonération des biens affectés à votre activité.`);
     else if(I.base>1100000) a.push(`Assiette IFI à ${eur(I.base)}, proche du seuil de 1 300 000 €.`); }
   const cca=sumType("m1",["Compte courant d'associé"]); if(cca>0) a.push(`${eur(cca)} en comptes courants d'associés : leur remboursement n'est pas fiscalisé, à mobiliser avant toute distribution.`);
-  if(has("m3")) S.items.m3.forEach(it=>{ const f3=fiscal3(it); if(f3.headline&&/^Déficit/.test(f3.headline)&&["Location nue","SCI à l'IR","SCPI"].includes(it.type)) a.push(`Domum, ${esc(it.nom)} : ${f3.headline.toLowerCase()} foncier cette année, à imputer sur votre revenu global dans la limite de 10 700 €.`); });
+  if(has("m3")) S.items.m3.forEach(it=>{ const f3=fiscal3(it); if(f3.headline&&/^Déficit/.test(f3.headline)&&["Location nue","SCI à l'IR","SCPI"].includes(it.type)) a.push(`Immo, ${esc(it.nom)} : ${f3.headline.toLowerCase()} foncier cette année, à imputer sur votre revenu global dans la limite de 10 700 €.`); });
   if(has("m2")) S.items.m2.forEach(it=>{ const c=m2(it);
-    if(it.type===T2.opt && c.T>0 && c.days<=30) a.push(`Tivra : l'option ${esc(it.nom)} expire dans ${c.days} jour${c.days>1?"s":""}.`);
-    if(it.type===T2.obl && c.T>0 && c.T<.5) a.push(`Tivra : l'obligation ${esc(it.nom)} arrive à échéance le ${fmtD(pDate(it.maturite))}, prévoyez le réinvestissement.`);
-    if(it.type===T2.eq && c.vi.cliffD && c.vi.cliffD>TODAY && (c.vi.cliffD-TODAY)<90*864e5) a.push(`Tivra : le cliff de ${esc(it.nom)} tombe le ${fmtD(c.vi.cliffD)}.`); });
+    if(it.type===T2.opt && c.T>0 && c.days<=30) a.push(`Titres : l'option ${esc(it.nom)} expire dans ${c.days} jour${c.days>1?"s":""}.`);
+    if(it.type===T2.obl && c.T>0 && c.T<.5) a.push(`Titres : l'obligation ${esc(it.nom)} arrive à échéance le ${fmtD(pDate(it.maturite))}, prévoyez le réinvestissement.`);
+    if(it.type===T2.eq && c.vi.cliffD && c.vi.cliffD>TODAY && (c.vi.cliffD-TODAY)<90*864e5) a.push(`Titres : le cliff de ${esc(it.nom)} tombe le ${fmtD(c.vi.cliffD)}.`); });
   const tre=sumType("m1",["Trésorerie pro"]); if(tre>200000) a.push(`Trésorerie pro de ${eur(tre)} : un excédent durable peut être remonté en holding ou placé sur un contrat de capitalisation.`);
-  if(t.brut>0 && t.gross.m1/t.brut>.6) a.push(`Falco Core représente ${pct(t.gross.m1/t.brut*100)} du patrimoine : forte dépendance à votre entreprise.`);
+  if(t.brut>0 && t.gross.m1/t.brut>.6) a.push(`Equity représente ${pct(t.gross.m1/t.brut*100)} du patrimoine : forte dépendance à votre entreprise.`);
   return a;
 }
 function recordHist(){
   if(!S.pack) return;
   const t=totals(); if(!(t.brut>0)) return;
-  const d=new Date(), iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`, v=Math.round(t.netTotal);
-  const h=S.hist, last=h[h.length-1];
-  if(last && last[0]===iso){ if(last[1]!==v){ last[1]=v; persist(); } }
-  else { h.push([iso,v]); if(h.length>1200) h.splice(0,h.length-1200); persist(); }
+  const d=new Date(), iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const per={}; MKEYS.forEach(k=>{ per[k]=has(k)?Math.round(S.items[k].reduce((s,it)=>s+itemValue(k,it)-(k==="m3"?m3(it).debt:0),0)):0; });
+  const v=Object.values(per).reduce((a,b)=>a+b,0), h=S.hist, last=h[h.length-1];
+  if(last && last[0]===iso){ if(last[1]!==v||JSON.stringify(last[2])!==JSON.stringify(per)){ last[1]=v; last[2]=per; persist(); } }
+  else { h.push([iso,v,per]); if(h.length>1200) h.splice(0,h.length-1200); persist(); }
 }
 const DPER = [["1M",30],["3M",91],["YTD",0],["1A",365],["Tout",-1]];
 function histRange(){
   const [k,days]=DPER[dPeriod], now=new Date(); let from;
   if(days===-1) from="0000"; else if(days===0) from=`${now.getFullYear()}-01-01`; else { const f=new Date(now-days*864e5); from=f.toISOString().slice(0,10); }
-  return S.hist.filter(h=>h[0]>=from);
+  const off=MKEYS.filter(k=>!incl(k)), last=S.hist[S.hist.length-1];
+  let ratio=1; if(off.length&&last&&last[2]){ const all=last[1], inc=all-off.reduce((s,k)=>s+(last[2][k]||0),0); ratio=all?inc/all:1; }
+  return S.hist.filter(h=>h[0]>=from).map(h=>[h[0], off.length ? (h[2] ? h[1]-off.reduce((s,k)=>s+(h[2][k]||0),0) : Math.round(h[1]*ratio)) : h[1]]);
 }
 function passiveIncome(){
   let inc=0;
@@ -1419,7 +1429,7 @@ function posRows(){
   return out.sort((a,b)=>b.v-a.v);
 }
 function donutSVG(t){
-  const keys=MKEYS.filter(k=>has(k)), R=96, C=140, sw=22, circ=2*Math.PI*R, tot=Math.max(0,t.brut); let off=0, segs="", sats="";
+  const keys=MKEYS.filter(k=>has(k)&&incl(k)), R=96, C=140, sw=22, circ=2*Math.PI*R, tot=Math.max(0,t.brut); let off=0, segs="", sats="";
   if(tot>0) keys.forEach(k=>{
     const v=Math.max(0,t.gross[k]); if(v<=0) return;
     const f=v/tot, len=Math.max(0,f*circ-4), dim=dFocus&&dFocus!==k;
@@ -1435,7 +1445,7 @@ function donutSVG(t){
     ${segs}${sats}
     <text x="${C}" y="${C-10}" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="600">${fk?PROD[fk].brand:"Patrimoine brut"}</text>
     <text x="${C}" y="${C+16}" text-anchor="middle" fill="var(--ink)" font-size="24" font-weight="600" class="money" font-family="Sora, Manrope, sans-serif">${compact(cv)}</text>
-    <text x="${C}" y="${C+36}" text-anchor="middle" fill="var(--muted)" font-size="11.5">${fk?(tot?pct(cv/tot*100):"—")+" du brut":keys.length+" applications"}</text>
+    <text x="${C}" y="${C+36}" text-anchor="middle" fill="var(--muted)" font-size="11.5">${fk?(tot?pct(cv/tot*100):"—")+" du brut":keys.length+" module"+(keys.length>1?"s":"")}</text>
   </svg>`;
 }
 function pageDashboard(){
@@ -1450,19 +1460,19 @@ function pageDashboard(){
   const ab = n => (String(n||"?").replace(/[^A-Za-zÀ-ÿ0-9 ]/g,"").split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("")||"?").toUpperCase();
   const save=f.A.tax-f.mix.tax;
   return `<div class="dash">
-  ${empty?`<div class="dcard dempty"><p>Votre patrimoine est encore vide. Renseignez vos actifs dans Domum, Falco Core, Tivra et Envelo, ou chargez un dossier d'exemple pour explorer FALT.</p><button class="btn primary" data-act="demo">Charger un exemple</button></div>`:""}
+  ${empty?`<div class="dcard dempty"><p>Votre patrimoine est encore vide. Renseignez vos actifs dans Immo, Equity, Titres et Cash, ou chargez un dossier d'exemple pour explorer FALT.</p><button class="btn primary" data-act="demo">Charger un exemple</button></div>`:""}
   <section class="dcard hero" aria-label="Patrimoine net">
     <div class="hero-top">
       <div>
-        <div class="hlbl">Patrimoine net ${S.histDemo?'<span class="chip">Historique d\'exemple</span>':""}</div>
+        <div class="hlbl">Patrimoine net${S.histDemo?' <span class="muted" style="font-weight:500">· historique d\'exemple</span>':""}</div>
         <div class="big money">${(net<0?"−":"")+nf.format(Math.abs(ent))}<span class="cts">,${String(cts).padStart(2,"0")} €</span></div>
-        <div class="delta">${dlt!==null?`<span class="pill ${dlt>=0?"up":"down"} money">${dlt>=0?"▲":"▼"} ${dlt>=0?"+":"−"}${eur(Math.abs(dlt))}</span><span class="pill ${dlt>=0?"up":"down"}">${dp>=0?"+":"−"}${pct(Math.abs(dp),2)}</span><span class="muted">${plbl}</span>`:`<span class="muted">Après ${eur(t.liab)} de crédits immobiliers</span>`}</div>
+        <div class="delta">${dlt!==null?`<span class="pill ${dlt>=0?"up":"down"} money">${dlt>=0?"+":"−"}${eur(Math.abs(dlt))}</span><span class="pill ${dlt>=0?"up":"down"}">${dp>=0?"+":"−"}${pct(Math.abs(dp),2)}</span><span class="muted">${plbl}</span>`:`<span class="muted">Après ${eur(t.liab)} de crédits immobiliers</span>`}</div>
       </div>
       <div class="dseg" role="group" aria-label="Période">${DPER.map(([k],i)=>`<button data-dper="${i}" aria-pressed="${i===dPeriod}">${k}</button>`).join("")}</div>
     </div>
     <div class="hchart" id="hchart"><div class="htip" id="htip"></div></div>
     <div class="kstrip">
-      <div class="kc"><small>Patrimoine brut</small><b>${eur(t.brut)}</b><span>${keys.filter(k=>has(k)).length} applications</span></div>
+      <div class="kc"><small>Patrimoine brut</small><b>${eur(t.brut)}</b><span>${t.off.length?`${t.off.map(k=>PROD[k].brand).join(", ")} détaché${t.off.length>1?"s":""}`:`${keys.filter(k=>has(k)).length} modules`}</span></div>
       <div class="kc"><small>Crédits restants</small><b>${eur(t.liab)}</b><span>${t.brut?pct(t.liab/t.brut*100)+" du brut":"—"}</span></div>
       <div class="kc"><small>Épargne disponible</small><b>${eur(liq)}</b><span>livrets et comptes</span></div>
       <div class="kc"><small>IFI indicatif</small><b>${eur(I.tax)}</b><span>assiette ${compact(I.base)}</span></div>
@@ -1470,24 +1480,24 @@ function pageDashboard(){
     </div>
   </section>
   <section class="dcard dalloc" aria-label="Répartition">
-    <div class="dch"><h2>Répartition</h2><span class="sub">par application</span><span class="spacer"></span>${dFocus?`<button class="btn ghost" data-dfocus="">Tout afficher</button>`:""}</div>
+    <div class="dch"><h2>Constitution du patrimoine</h2><span class="spacer"></span>${dFocus?`<button class="btn ghost" data-dfocus="">Tout afficher</button>`:""}</div>
     <div class="donut">${donutSVG(t)}</div>
-    <div class="dleg">${keys.map(k=>`<button class="lg" data-dfocus="${k}" aria-pressed="${dFocus===k}">${logo(k,30)}<span class="nm">${PROD[k].brand}<small>${PROD[k].tag}</small></span><span class="v money">${has(k)?compact(t.gross[k]):"inactif"}</span><span class="p">${t.brut&&has(k)?pct(Math.max(0,t.gross[k])/t.brut*100):""}</span></button>`).join("")}</div>
+    <div class="dleg">${keys.map(k=>`<div class="lgrow ${has(k)&&!incl(k)?"det":""}"><button class="lg" data-dfocus="${k}" aria-pressed="${dFocus===k}" ${has(k)&&incl(k)?"":"disabled"}>${logo(k,30)}<span class="nm">${PROD[k].brand}${has(k)&&!incl(k)?"<small>Détaché</small>":""}</span><span class="v money">${has(k)?compact(t.gross[k]):"inactif"}</span><span class="p">${t.brut&&has(k)&&incl(k)?pct(Math.max(0,t.gross[k])/t.brut*100):""}</span></button>${has(k)?`<label class="switch" title="${incl(k)?"Détacher":"Rattacher"} ${PROD[k].brand}"><input type="checkbox" data-incl="${k}" ${incl(k)?"checked":""} aria-label="Inclure ${PROD[k].brand} dans le patrimoine"><span></span></label>`:""}</div>`).join("")}</div>
   </section>
   <section class="dapps" aria-label="Vos applications">${keys.map(k=>{
     const items=has(k)?S.items[k]:[], v=t.gross[k], by={};
     items.forEach(it=>by[it.type]=(by[it.type]||0)+Math.max(0,itemValue(k,it)));
     const parts=Object.entries(by).sort((a,b)=>b[1]-a[1]), tv=parts.reduce((s,[,x])=>s+x,0)||1;
-    return `<button class="dapp ${has(k)?"":"off"}" data-go="${k}"><div class="dapp-h">${logo(k,38)}<span><b>${PROD[k].brand}</b><small>${PROD[k].tag}</small></span><span class="go">${ICON.right}</span></div>
+    return `<button class="dapp ${has(k)&&incl(k)?"":"off"}" data-go="${k}"><div class="dapp-h">${logo(k,38)}<span><b>${PROD[k].brand}</b></span><span class="go">${ICON.right}</span></div>
       <div class="val money">${has(k)?eur(v):"Non activé"}</div>
       <div class="comp">${parts.map(([n,x],i)=>`<i title="${esc(n)}" style="width:${x/tv*100}%;background:${APPCOL[k]};opacity:${Math.max(.3,1-i*.22)}"></i>`).join("")}</div>
-      <div class="meta"><span>${items.length} ligne${items.length>1?"s":""}</span>${parts[0]?`<span>· ${esc(parts[0][0])}</span>`:""}${t.brut&&has(k)?`<span class="pill flat" style="margin-left:auto">${pct(Math.max(0,v)/t.brut*100)}</span>`:""}</div></button>`; }).join("")}</section>
+      <div class="meta"><span>${items.length} ligne${items.length>1?"s":""}</span>${parts[0]?`<span>· ${esc(parts[0][0])}</span>`:""}${has(k)&&!incl(k)?`<span class="pill flat" style="margin-left:auto">Détaché</span>`:t.brut&&has(k)?`<span class="pill flat" style="margin-left:auto">${pct(Math.max(0,v)/t.brut*100)}</span>`:""}</div></button>`; }).join("")}</section>
   <section class="dcard dpos" aria-label="Positions">
-    <div class="dch"><h2>Positions</h2><span class="sub">${rows.length} ligne${rows.length>1?"s":""}</span><span class="spacer"></span>${dFilter!=="all"?`<button class="btn primary" data-act="add" data-k="${dFilter}">+ Ajouter</button>`:`<button class="btn" data-go="orbis">Vue détaillée</button>`}</div>
+    <div class="dch"><h2>Positions</h2><span class="spacer"></span>${dFilter!=="all"?`<button class="btn primary" data-act="add" data-k="${dFilter}">+ Ajouter</button>`:`<button class="btn" data-go="orbis">Vue détaillée</button>`}</div>
     <div class="dtabs" role="tablist">${[["all","Toutes"],...keys.filter(k=>has(k)).map(k=>[k,PROD[k].brand])].map(([k,l])=>`<button role="tab" data-dfilter="${k}" aria-selected="${dFilter===k}">${l}<span class="n">${k==="all"?posRows().length:S.items[k].length}</span></button>`).join("")}</div>
     ${rows.length?`<div class="ptbl"><table><thead><tr><th>Actif</th><th>Poids</th><th class="num">Valeur</th><th class="num">Plus-value</th><th>Indicateur</th></tr></thead><tbody>
-    ${shown.map(r=>{ const w=t.brut?Math.max(0,r.v)/t.brut*100:0;
-      return `<tr data-item="${r.k}|${r.it.id}"><td><div class="asset"><span class="aic" style="background:color-mix(in srgb,${APPCOL[r.k]} 82%,#000)">${esc(ab(r.it.nom))}</span><span style="min-width:0"><b>${esc(r.it.nom||"Sans nom")}</b><small>${PROD[r.k].brand} · ${esc(r.it.type)}</small></span></div></td>
+    ${shown.map(r=>{ const w=t.brut&&incl(r.k)?Math.max(0,r.v)/t.brut*100:0;
+      return `<tr data-item="${r.k}|${r.it.id}"><td><div class="asset"><span class="aic" style="background:color-mix(in srgb,${APPCOL[r.k]} 82%,#000)">${esc(ab(r.it.nom))}</span><span style="min-width:0"><b>${esc(r.it.nom||"Sans nom")}</b><small>${PROD[r.k].brand}${incl(r.k)?"":" (détaché)"} · ${esc(r.it.type)}</small></span></div></td>
         <td><span class="wbar"><i style="width:${Math.min(100,w*2)}%;background:${APPCOL[r.k]}"></i></span><span class="muted" style="font-size:12.5px">${pct(w)}</span></td>
         <td class="num money" style="font-weight:700;color:var(--ink)">${eur(r.v)}</td>
         <td class="num">${r.pv===null?'<span class="muted">—</span>':`<div class="money ${r.pv>=0?"up":"down"}" style="font-weight:800">${r.pv>=0?"+":"−"}${eur(Math.abs(r.pv))}</div>${r.cost>0?`<small class="muted">${r.pv>=0?"+":"−"}${pct(Math.abs(r.pv)/r.cost*100)}</small>`:""}`}</td>
@@ -1497,7 +1507,7 @@ function pageDashboard(){
   </section>
   <aside class="dside">
     <section class="dcard fis" aria-label="Fiscool">
-      <span class="ftag">${ICON.spark}Fiscool · recommandation</span>
+      <span class="ftag">Fiscool</span>
       <h3>${f.D>0?(S.fisc.holding?`Remontez ${compact(f.mix.hold)} en holding au lieu de les distribuer`:`Calibrez vos dividendes sur votre besoin de ${compact(f.mix.perso)}`):"Renseignez le résultat de votre société"}</h3>
       <div class="save money">${save>0?"−"+eur(save):"0 €"}</div>
       <p>d'impôt cette année par rapport à une distribution intégrale en dividendes.</p>
@@ -1507,13 +1517,13 @@ function pageDashboard(){
       </div>
       <button class="btn primary" style="width:100%" data-go="fiscool">Ouvrir la simulation</button>
     </section>
-    <section class="dcard"><div class="dch"><h2>Points d'attention</h2><span class="spacer"></span><span class="chip">${al.length}</span></div>
+    <section class="dcard"><div class="dch"><h2>Points d'attention</h2></div>
       <div class="dlist">${al.length?al.slice(0,4).map(x=>{ const [i,c]=sevOf(x); return `<div class="dalert"><span class="sev" style="background:color-mix(in srgb,${c} 14%,transparent);color:${c}">${ICON[i]}</span><span>${x}</span></div>`; }).join(""):'<p class="muted" style="padding:0 20px">Rien à signaler pour l\'instant.</p>'}
       ${al.length>4?`<div class="pmore"><button class="btn" data-go="orbis">Voir les ${al.length} points</button></div>`:""}</div></section>
-    <section class="dcard"><div class="dch">${logo("m1",26)}<h2>Trésorerie & CCA</h2></div>
+    <section class="dcard"><div class="dch"><h2>Trésorerie & CCA</h2></div>
       <div class="mini"><div class="kv"><span>Trésorerie pro immédiate</span><b>${eur(sumType("m1",["Trésorerie pro"]))}</b></div>
       <div class="kv"><span>Comptes courants d'associés</span><b>${eur(sumType("m1",["Compte courant d'associé"]))}</b></div>
-      <p class="small muted" style="margin:8px 0 0">${S.falco.status==="synced"?`Source Falco, synchronisé le ${fmtD(new Date(S.falco.lastSync))}.`:`Saisie manuelle. <button class="btn ghost" data-go="m1" style="padding:0;color:var(--amber)">Jumeler avec Falco</button>`}</p></div></section>
+      <p class="small muted" style="margin:8px 0 0">${S.falco.lastSync?`Issu du FEC importé le ${fmtD(new Date(S.falco.lastSync))}.`:`<button class="btn ghost" data-act="fec-import" style="padding:0;color:var(--amber)">Importer un FEC</button>`}</p></div></section>
   </aside>
   </div>`;
 }
@@ -1561,7 +1571,7 @@ function pageOrbis(){
     const items = has(k)?S.items[k]:[], v=t.gross[k];
     const byType={}; items.forEach(it=>byType[it.type]=(byType[it.type]||0)+itemValue(k,it));
     const cats = Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([n,x])=>`<div class="sbar"><span>${esc(n)}</span><span>${compact(x)} · ${v?pct(x/v*100):"—"}</span><span class="track"><i style="width:${v?Math.max(0,x)/v*100:0}%;background:${MODS[k].scol}"></i></span></div>`).join("");
-    return `<div class="card"><div class="ctitle">${logo(k,36)}<div><h2 style="margin:0">${PROD[k].brand}</h2><div class="small muted">${esc(MODS[k].name)}</div></div><span class="spacer"></span><span class="price" style="font-size:24px">${has(k)?eur(v):"—"}</span></div>
+    return `<div class="card"><div class="ctitle">${logo(k,36)}<div><h2 style="margin:0">${PROD[k].brand}</h2></div><span class="spacer"></span><span class="price" style="font-size:24px">${has(k)?eur(v):"—"}</span></div>
       ${!has(k)?`<p class="muted">Application inactive.</p>`:items.length?`<div class="slist">${cats}</div>${kpis(k,items,v)}`:`<p class="muted">Aucune ligne pour l'instant.</p>`}
       <div class="row" style="margin-top:14px"><button class="btn" data-go="${k}">Ouvrir ${PROD[k].brand}</button></div></div>`;
   }).join("");
@@ -1586,9 +1596,9 @@ function pageModule(k){
   }
   if(k==="m1"){
     head=`<th>Libellé</th><th>Catégorie</th><th>Méthode</th><th class="num">Valorisation</th><th>Source</th>`;
-    rows=items.map(it=>`<tr>${nameCell(k,it)}<td><span class="tag">${esc(it.type)}</span></td><td class="muted">${["Holding","Société d'exploitation"].includes(it.type)?esc(it.methode||"Valeur saisie"):"—"}</td><td class="num">${eur(m1v(it))}</td><td>${it.source==="Falco"?`<span class="chip"><span class="live"></span>Falco</span>`:`<span class="muted small">Manuel</span>`}</td>${actCells(k,it)}</tr>`).join("");
-    pre=falcoPanel();
-    tools=`<button class="btn" data-act="falco-import">Importer un export Falco</button>`;
+    rows=items.map(it=>`<tr>${nameCell(k,it)}<td><span class="tag">${esc(it.type)}</span></td><td class="muted">${["Holding","Société d'exploitation"].includes(it.type)?esc(it.methode||"Valeur saisie"):"—"}</td><td class="num">${eur(m1v(it))}</td><td>${it.source==="FEC"?`<span class="tag">FEC ${it.fec?.date?fmtD(new Date(it.fec.date)):""}</span>`:`<span class="muted small">Manuel</span>`}</td>${actCells(k,it)}</tr>`).join("");
+    pre=fecPanel();
+    tools=`<button class="btn" data-act="fec-import">Importer un FEC</button>`;
   }
   if(k==="m2"){
     head=`<th>Libellé</th><th>Classe</th><th class="num">Valeur</th><th class="num">Plus-value latente</th><th>Indicateur clé</th>`;
@@ -1611,7 +1621,7 @@ function pageModule(k){
     tools=`<button class="btn" data-act="import" data-k="m4">Importer un relevé CSV</button>`;
   }
   const tot = items.reduce((s,it)=>s+itemValue(k,it),0);
-  return prodHead(k) + `<p class="lede">${M.intro}</p>${pre}
+  return prodHead(k) + `${pre}
   <div class="row" style="margin-bottom:16px">
     <button class="btn primary" data-act="add" data-k="${k}">Ajouter une ligne</button>${tools}
     <span class="spacer"></span><span class="muted">Total : <b style="color:var(--ink)" class="amt">${eur(tot)}</b></span>
@@ -1624,66 +1634,81 @@ function ifiPanel(){ const I=ifi(); return `<div class="card" style="margin-top:
   <div class="kv"><span>Assiette nette</span><b>${eur(I.base)}</b></div><div class="kv"><span>IFI indicatif</span><b>${eur(I.tax)}</b></div>
   <p class="small muted" style="margin:8px 0 0">Valeur nette des crédits restant dus. Estimation hors règles fines de déductibilité des dettes et d'exonération professionnelle.</p></div>`; }
 
-/* ---------- Falco : jumelage ---------- */
-function falcoPanel(){
-  const F=S.falco;
-  const status = F.status==="synced" ? `<span class="chip"><span class="live"></span>Synchronisé</span>` : F.status==="pending" ? `<span class="chip"><span class="live" style="background:var(--amber);box-shadow:0 0 0 3px rgba(63,123,255,.18)"></span>En attente de Falco</span>` : `<span class="chip">Non jumelé</span>`;
-  const body = F.status==="pending"
-    ? `<p class="muted" style="margin:0 0 12px">Saisissez cette clé dans Falco, rubrique Paramètres puis FALT, pour activer la synchronisation en temps réel.</p>
-       <div class="row"><span class="keybox">${esc(F.key)}</span><button class="btn" data-act="falco-copy">Copier la clé</button><button class="btn ghost" data-act="falco-cancel">Annuler le jumelage</button></div>
-       <p class="note">La confirmation côté Falco passe par le serveur FALT, qui n'est pas branché sur ce prototype. En attendant, importez un export Falco pour remonter vos valorisations, votre trésorerie et vos CCA.</p>`
-    : F.status==="synced"
-    ? `<div class="kv"><span>Dernière synchronisation</span><b>${fmtD(new Date(F.lastSync))}</b></div><div class="kv"><span>Lignes remontées depuis Falco</span><b>${F.count}</b></div><div class="kv"><span>Mode</span><b>${F.key?"Jumelage par clé + import":"Import d'export Falco"}</b></div>`
-    : `<p class="muted" style="margin:0">Reliez FALT à Falco pour remonter automatiquement la valorisation de vos titres (modèles EBITDA ou DCF calculés dans Falco), votre trésorerie pro excédentaire et vos soldes de comptes courants d'associés.</p>`;
-  return `<div class="card ${F.status==="synced"?"":"amber"}" style="margin-bottom:16px"><div class="pair">
-    <div><div class="ctitle">${logo("m1",32)}<h2>Liaison avec Falco</h2>${status}</div>${body}</div>
-    <div><div class="row" style="flex-direction:column;align-items:stretch">
-      <button class="btn primary" data-act="falco-oauth">Se connecter avec Falco (recommandé)</button>
-      ${F.status!=="pending"?`<button class="btn" data-act="falco-pair">${F.status==="synced"?"Générer une nouvelle clé de jumelage":"Jumeler avec une clé"}</button>`:""}
-      <button class="btn" data-act="falco-import">Importer un export Falco (JSON)</button></div>
-      <div class="methods">
-        <div><b>Connexion Falco : recommandée</b>Un clic, vous validez les accès dans Falco, révocable à tout moment. Mise à jour en temps réel par webhooks dès qu'une clôture ou un mouvement est saisi.</div>
-        <div><b>Clé de jumelage</b>Utile si vos comptes Falco et FALT n'ont pas le même e-mail, ou pour relier le compte de votre expert-comptable.</div>
-        <div><b>Import JSON</b>Solution de secours, sans connexion permanente.</div></div>
-      <details class="dev"><summary>Fonctionnement technique</summary><ul>
-        <li>Authentification : OAuth2 (code d'autorisation + PKCE) ou clé de jumelage échangée contre une paire de clés API.</li>
-        <li>Synchronisation bidirectionnelle : FALT lit valorisations, trésorerie et CCA ; Falco reçoit le patrimoine personnel consolidé si l'utilisateur l'autorise.</li>
-        <li>Webhooks signés (HMAC) déclenchés par Falco : <code>cloture.validee</code>, <code>tresorerie.mouvement</code>, <code>cca.mouvement</code>, <code>valorisation.maj</code>.</li>
-        <li>Repli : synchronisation planifiée quotidienne si aucun webhook n'est reçu.</li></ul></details>
-    </div></div></div>`;
+/* ---------- Equity : import FEC ---------- */
+function fecPanel(){
+  const socs=S.items.m1.filter(i=>i.source==="FEC"&&i.fec&&i.fec.ca!==undefined);
+  return `<div class="card" style="margin-bottom:16px"><div class="row" style="align-items:flex-start;gap:20px;flex-wrap:wrap">
+    <div style="flex:1;min-width:260px"><h2 style="margin:0 0 6px">Import FEC</h2>
+      <p class="muted" style="margin:0">Déposez le Fichier des Écritures Comptables de chaque société. FALT lit tout d'un coup : valorisation, trésorerie, dettes, comptes courants d'associés et résultat pour Fiscool.</p>
+      ${socs.length?`<div style="margin-top:12px">${socs.map(i=>`<div class="kv"><span>${esc(i.nom)}</span><b>exercice au ${fmtD(new Date(i.fec.date))}</b></div>`).join("")}</div>`:""}</div>
+    <button class="btn primary" data-act="fec-import">Importer un FEC</button></div></div>`;
 }
-const FALCO_EX = {date_cloture:"2026-06-30",societes:[{nom:"Atlas Industrie SAS",type:"Société d'exploitation",detention:80,methode:"DCF",dcf:7200000,tresorerie_nette:650000,dette:900000,tresorerie_excedentaire:0,cca:180000},{nom:"Holding Atlas",type:"Holding",detention:100,methode:"Valeur",valeur:420000,tresorerie_excedentaire:310000,cca:0}]};
-function openFalcoImport(){
-  dlg.innerHTML = `<form method="dialog"><div class="row" style="margin-bottom:12px">${logo("m1",36)}<h2 style="margin:0">Importer un export Falco</h2></div>
-    <p class="small muted">Collez ou chargez le fichier JSON exporté depuis Falco. Chaque société met à jour sa ligne de titres, sa trésorerie excédentaire et son compte courant d'associé.</p>
-    <label class="f">Fichier JSON<input type="file" accept=".json,application/json" id="fjFile"></label>
-    <label class="f" style="margin-top:10px">Contenu<textarea id="fjTxt" rows="7" placeholder='{"societes":[…]}'></textarea></label>
-    <div class="row" style="margin-top:8px"><button class="btn ghost" type="button" data-act="falco-ex">Voir le format attendu</button></div>
-    <pre class="ex" id="fjEx" hidden>${esc(JSON.stringify(FALCO_EX,null,2))}</pre>
+function parseFEC(txt){
+  txt = txt.replace(/^﻿/,"");
+  const lines = txt.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2) throw new Error("Fichier vide");
+  const h0 = lines[0], sep = h0.includes("\t")?"\t":h0.includes("|")?"|":";";
+  const H = h0.split(sep).map(x=>x.trim().toLowerCase());
+  const col = n => H.findIndex(x=>x===n.toLowerCase());
+  const iC=col("CompteNum"), iD=col("Debit"), iCr=col("Credit"), iDt=col("EcritureDate"), iS=col("Sens"), iM=col("Montant");
+  if(iC<0 || (iD<0 && iM<0)) throw new Error("Colonnes CompteNum, Debit et Credit introuvables : ce n'est pas un FEC");
+  const amt = v => { v=String(v||"").trim().replace(/\s/g,""); if(!v) return 0; if(v.includes(",")) v=v.replace(/\./g,"").replace(",","."); return parseFloat(v)||0; };
+  const bal = {}; let last="", n=0;
+  for(let i=1;i<lines.length;i++){
+    const c = lines[i].split(sep); const acc=String(c[iC]||"").trim(); if(!acc) continue;
+    let d, cr; if(iD>=0){ d=amt(c[iD]); cr=amt(c[iCr]); } else { const m=amt(c[iM]), sn=String(c[iS]||"").trim().toUpperCase(); d=sn==="D"||sn==="+1"?m:0; cr=sn==="C"||sn==="-1"?m:0; }
+    bal[acc]=(bal[acc]||0)+d-cr; n++;
+    const dt=String(c[iDt]||"").trim(); if(/^\d{8}$/.test(dt) && dt>last) last=dt;
+  }
+  const S_ = (...pre) => Object.entries(bal).reduce((s,[a,v])=>pre.some(p=>a.startsWith(p))?s+v:s,0);
+  const prod = -S_("70","71","72","73","74"), chg = S_("60","61","62","63","64");
+  const r67 = -S_("6","7");                       // résultat net si l'exercice n'est pas soldé
+  const rn = Math.abs(r67)>0.5 ? r67 : -S_("12");
+  const is = S_("695","696","698","699");
+  const treso = S_("50","51","53"), dettes = -S_("16"), cca = -S_("455");
+  const cp = -S_("10","11","12","13","14") + (Math.abs(r67)>0.5 ? r67 : 0);
+  return {n, date: last?`${last.slice(0,4)}-${last.slice(4,6)}-${last.slice(6,8)}`:"", ca:-S_("70"), ebe:prod-chg, rn, rai:rn+is, cp, treso, dettes, cca, partic:S_("261","266")};
+}
+function openFecImport(){
+  const ex = S.items.m1.find(i=>i.type==="Société d'exploitation") || S.items.m1.find(i=>i.type==="Holding");
+  dlg.innerHTML = `<form method="dialog"><h2 style="margin:0 0 6px">Importer un FEC</h2>
+    <p class="small muted" style="margin:0 0 14px">Le fichier .txt ou .csv exporté par le logiciel comptable (format légal, 18 colonnes). Rien d'autre à saisir.</p>
+    <label class="f">Fichier FEC<input type="file" accept=".txt,.csv,.tsv,text/plain" id="fecFile" required></label>
+    <div class="form" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:12px">
+      <label class="f">Société<input type="text" id="fecNom" value="${esc(ex?.nom||"")}" placeholder="Nom de la société"></label>
+      <label class="f">Type<select id="fecType"><option ${ex?.type!=="Holding"?"selected":""}>Société d'exploitation</option><option ${ex?.type==="Holding"?"selected":""}>Holding</option></select></label>
+      <label class="f">Détention (%)<input type="text" inputmode="decimal" id="fecDet" value="${esc(ex?.detention||"100")}"></label>
+    </div>
+    <p class="small muted" id="fecInfo" style="margin:10px 0 0"></p>
     <div class="row" style="margin-top:16px;justify-content:flex-end"><button class="btn" value="cancel" formnovalidate>Annuler</button><button class="btn primary" value="ok">Importer</button></div></form>`;
-  dlg.querySelector("#fjFile").onchange = e => { const f=e.target.files[0]; if(f) f.text().then(t=>dlg.querySelector("#fjTxt").value=t); };
+  let txt="", fname="";
+  dlg.querySelector("#fecFile").onchange = e => { const f=e.target.files[0]; if(!f) return; fname=f.name;
+    const sir=(f.name.match(/^(\d{9})FEC/i)||[])[1]; const nm=dlg.querySelector("#fecNom"); if(sir && !nm.value) nm.value="Société "+sir;
+    f.arrayBuffer().then(b=>{ let t; try{ t=new TextDecoder("utf-8",{fatal:true}).decode(b); }catch(_){ t=new TextDecoder("windows-1252").decode(b); } txt=t;
+      try{ const r=parseFEC(t); dlg.querySelector("#fecInfo").textContent=`${nf.format(r.n)} écritures · exercice au ${r.date?fmtD(new Date(r.date)):"—"} · CA ${compact(r.ca)} · EBE ${compact(r.ebe)}`; }
+      catch(err){ dlg.querySelector("#fecInfo").textContent=err.message; } }); };
   dlg.returnValue=""; dlg.showModal();
   dlg.onclose = () => {
     if(dlg.returnValue!=="ok") return;
-    let data; try{ data=JSON.parse(dlg.querySelector("#fjTxt").value); }catch(e){ toast("Le contenu n'est pas un JSON valide : vérifiez l'export Falco"); return; }
-    const socs = Array.isArray(data) ? data : data.societes;
-    if(!Array.isArray(socs)||!socs.length){ toast("Aucune société trouvée : le JSON doit contenir une liste « societes »"); return; }
-    let n=0, created=0; const norm=x=>String(x||"").toLowerCase();
-    const up=(soc,nom,type,o)=>{ const ref=norm(soc)+"|"+type, words=norm(soc).split(/[^a-zà-ÿ0-9]+/).filter(w=>w.length>3&&!["holding","société","societe"].includes(w));
-      let it=S.items.m1.find(i=>i.falcoRef===ref) || S.items.m1.find(i=>i.type===type && norm(i.nom)===norm(nom))
-        || (type!=="Holding"&&type!=="Société d'exploitation" ? S.items.m1.find(i=>i.type===type && !i.falcoRef && words.some(w=>norm(i.nom).includes(w))) : null)
-        || (type==="Trésorerie pro" ? S.items.m1.find(i=>i.type===type && !i.falcoRef && /holding/.test(norm(soc)) && /holding/.test(norm(i.nom))) : null);
-      if(!it){ it={id:uidGen(),nom,type}; S.items.m1.push(it); created++; }
-      Object.assign(it,o,{source:"Falco",falcoRef:ref}); n++; };
-    socs.forEach(s=>{
-      if(!s||!s.nom) return;
-      const meth = /dcf/i.test(s.methode||"") ? "DCF" : /ebitda/i.test(s.methode||"") ? "Multiple d'EBITDA" : "Valeur saisie";
-      up(s.nom, s.nom, s.type==="Holding"?"Holding":"Société d'exploitation", {methode:meth, detention:String(s.detention??100), valeur:String(s.valeur??""), ebitda:String(s.ebitda??""), multiple:String(s.multiple??""), dcf:String(s.dcf??""), treso:String(s.tresorerie_nette??""), dette:String(s.dette??"")});
-      if(num(s.tresorerie_excedentaire)>0) up(s.nom,"Trésorerie · "+s.nom,"Trésorerie pro",{valeur:String(s.tresorerie_excedentaire)});
-      if(num(s.cca)>0) up(s.nom,"CCA · "+s.nom,"Compte courant d'associé",{valeur:String(s.cca)});
-    });
-    S.falco.status="synced"; S.falco.lastSync=new Date().toISOString(); S.falco.count=n;
-    persist(); render(); toast(`Falco : ${n-created} ligne${n-created>1?"s":""} mise${n-created>1?"s":""} à jour, ${created} créée${created>1?"s":""}`);
+    if(!txt){ toast("Choisissez un fichier FEC"); return; }
+    let r; try{ r=parseFEC(txt); }catch(err){ toast(err.message); return; }
+    const nom=dlg.querySelector("#fecNom").value.trim()||"Société", type=dlg.querySelector("#fecType").value, det=num(dlg.querySelector("#fecDet").value)||100;
+    const sir=(fname.match(/^(\d{9})FEC/i)||[])[1]||"", key=(sir||nom.toLowerCase());
+    const words=nom.toLowerCase().split(/[^a-zà-ÿ0-9]+/).filter(w=>w.length>3&&!["holding","société","societe","sarl","sasu"].includes(w));
+    const up=(ref,nm,ty,o)=>{ let it=S.items.m1.find(i=>i.fecRef===ref) || S.items.m1.find(i=>i.type===ty && i.nom===nm)
+        || (ty!=="Holding"&&ty!=="Société d'exploitation"&&words.length ? S.items.m1.find(i=>i.type===ty && !i.fecRef && words.every(w=>i.nom.toLowerCase().includes(w))) : null);
+      if(!it){ it={id:uidGen(),nom:nm,type:ty}; S.items.m1.push(it); } Object.assign(it,o,{source:"FEC",fecRef:ref}); return it; };
+    const pos=Math.max(0,r.treso), detteVal=r.dettes+Math.max(0,-r.treso)+Math.max(0,r.cca);
+    const meta={...r, file:fname};
+    if(type==="Société d'exploitation" && r.ebe>0)
+      up(key+"|soc",nom,type,{methode:"Multiple d'EBITDA", ebitda:String(Math.round(r.ebe)), multiple:"", treso:"0", dette:String(Math.round(detteVal)), detention:String(det), valeur:"", fec:meta});
+    else
+      up(key+"|soc",nom,type,{methode:"Valeur saisie", valeur:String(Math.round(r.cp-pos)), detention:String(det), fec:meta});
+    if(pos>0) up(key+"|treso","Trésorerie · "+nom,"Trésorerie pro",{valeur:String(Math.round(pos*det/100)), fec:{date:r.date}});
+    if(r.cca>0) up(key+"|cca","CCA · "+nom,"Compte courant d'associé",{valeur:String(Math.round(r.cca)), fec:{date:r.date}});
+    if(type==="Société d'exploitation") S.fisc.resultat=String(Math.round(r.rai));
+    S.falco.lastSync=new Date().toISOString();
+    persist(); render(); toast(`FEC importé : ${nom}, ${nf.format(r.n)} écritures`);
   };
 }
 
@@ -1829,7 +1854,13 @@ function item1(it){
       <div class="kv"><span>+ Trésorerie nette</span><b>${eur(num(it.treso))}</b></div><div class="kv"><span>− Dette financière</span><b>${eur(num(it.dette))}</b></div>
       <div class="kv"><span>Valeur des titres (100 %)</span><b>${eur(ve+num(it.treso)-num(it.dette))}</b></div><div class="kv"><span>× Détention</span><b>${pct(det,0)}</b></div>`;
   } else rows=`<div class="kv"><span>${["Compte courant d'associé","Trésorerie pro"].includes(it.type)?"Solde":"Valeur saisie"}</span><b>${eur(num(it.valeur))}</b></div>${["Compte courant d'associé","Trésorerie pro"].includes(it.type)?"":`<div class="kv"><span>× Détention</span><b>${pct(det,0)}</b></div>`}`;
-  return `<div class="kpis">${kpi("Valorisation retenue",eur(v),esc(["Holding","Société d'exploitation"].includes(it.type)?meth:it.type),1)}${kpi("Source",it.source==="Falco"?"Falco":"Saisie manuelle",it.source==="Falco"&&S.falco.lastSync?`synchronisé le ${fmtD(new Date(S.falco.lastSync))}`:"")}</div>
+  return `<div class="kpis">${kpi("Valorisation retenue",eur(v),esc(["Holding","Société d'exploitation"].includes(it.type)?meth:it.type),1)}${kpi("Source",it.source==="FEC"?"FEC":"Saisie manuelle",it.source==="FEC"&&it.fec?.date?`exercice au ${fmtD(new Date(it.fec.date))}`:"")}</div>
+    ${it.fec&&it.fec.ca!==undefined?`<div class="card" style="margin-bottom:16px"><h2>Données comptables (FEC)</h2>
+      <div class="kv"><span>Chiffre d'affaires</span><b>${eur(it.fec.ca)}</b></div><div class="kv"><span>EBE (EBITDA)</span><b>${eur(it.fec.ebe)}</b></div>
+      <div class="kv"><span>Résultat avant IS</span><b>${eur(it.fec.rai)}</b></div><div class="kv"><span>Résultat net</span><b>${eur(it.fec.rn)}</b></div>
+      <div class="kv"><span>Capitaux propres</span><b>${eur(it.fec.cp)}</b></div><div class="kv"><span>Trésorerie</span><b>${eur(it.fec.treso)}</b></div>
+      <div class="kv"><span>Dettes financières</span><b>${eur(it.fec.dettes)}</b></div><div class="kv"><span>Comptes courants d'associés</span><b>${eur(it.fec.cca)}</b></div>
+      <p class="small muted" style="margin:8px 0 0">${it.fec.n} écritures lues${it.fec.file?` dans ${esc(it.fec.file)}`:""}.</p></div>`:""}
     <div class="card"><h2>Détail de la valorisation</h2>${rows}<div class="kv"><span>Valeur retenue dans votre patrimoine</span><b style="color:var(--amber)">${eur(v)}</b></div></div>`;
 }
 
@@ -1883,7 +1914,7 @@ function pageProfil(){
       ${F("prenom","Prénom")}${F("nom","Nom")}${F("email","E-mail","email")}${F("tel","Téléphone","tel")}${F("naissance","Date de naissance","date")}${F("profession","Fonction")}${F("societe","Société principale")}
     </div></div>
     <div class="card" style="margin-bottom:16px"><h2>Situation familiale et fiscale</h2>
-      <p class="small muted" style="margin:-4px 0 14px">Votre tranche marginale d'imposition est utilisée par Domum pour estimer l'impôt de chaque bien.</p><div class="form">
+      <p class="small muted" style="margin:-4px 0 14px">Votre tranche marginale d'imposition est utilisée par Immo pour estimer l'impôt de chaque bien.</p><div class="form">
       ${F("situation","Situation familiale",0,["Célibataire","Marié(e)","Pacsé(e)","Divorcé(e)","Veuf / veuve"])}
       ${F("regime","Régime matrimonial",0,["Communauté réduite aux acquêts","Séparation de biens","Participation aux acquêts","Communauté universelle"])}
       ${F("enfants","Enfants à charge","number")}
@@ -1894,9 +1925,9 @@ function pageProfil(){
 }
 function pageSubs(){
   const cnt = MKEYS.filter(k=>S.subs[k]).length, alc = cnt*PRICE_MODULE, cost = S.pack ? PRICE_PACK : alc;
-  return `<p class="lede">Cinq applications indépendantes et interconnectées. Activez Domum, Falco Core, Tivra et Envelo à la carte, ou réunissez-les avec FALT dans le Pack Intégral. Mode démonstration : aucune facturation n'est déclenchée.</p>
+  return `<p class="lede">Cinq applications indépendantes et interconnectées. Activez Immo, Equity, Titres et Cash à la carte, ou réunissez-les avec FALT dans le Pack Intégral. Mode démonstration : aucune facturation n'est déclenchée.</p>
   <div class="card ${S.pack?"amber":""}" style="margin-bottom:16px"><div class="row">
-    ${logo("cockpit",48)}<div style="flex:1;min-width:200px"><h2 style="margin:0">Pack Intégral</h2><div class="muted">FALT (avec Orbis et Fiscool), Domum, Falco Core, Tivra et Envelo · ${PRICE_PACK} € HT / mois</div></div>
+    ${logo("cockpit",48)}<div style="flex:1;min-width:200px"><h2 style="margin:0">Pack Intégral</h2><div class="muted">FALT (avec Orbis et Fiscool), Immo, Equity, Titres et Cash · ${PRICE_PACK} € HT / mois</div></div>
     <label class="switch"><input type="checkbox" data-act="pack" ${S.pack?"checked":""} aria-label="Pack Intégral"><span></span></label></div></div>
   <div class="prodgrid">
     <div class="prodcard">${logo("cockpit",44)}<div><b>FALT</b><div class="small muted">${PROD.cockpit.tag}</div></div><div class="small muted" style="margin-top:auto">${S.pack?"Inclus dans le pack":"Uniquement avec le Pack Intégral"}</div></div>
@@ -1911,15 +1942,14 @@ function pageSubs(){
 function pageSettings(){
   const P=S.prefs, sw=(k)=>`<label class="switch"><input type="checkbox" data-pref="${k}" ${P[k]?"checked":""}><span></span></label>`;
   const ni=(k)=>`<input class="inp" type="text" inputmode="decimal" data-pref="${k}" value="${esc(P[k])}" style="width:84px;text-align:right">`;
-  const fst = S.falco.status==="synced"?`<span class="chip"><span class="live"></span>Synchronisé</span>`:S.falco.status==="pending"?`<span class="tag">En attente</span>`:`<button class="btn" data-go="m1">Jumeler</button>`;
   return `<div class="card" style="margin-bottom:16px"><h2>Affichage</h2>
     <div class="setrow"><div><b>Masquer les montants</b><small>Floute les valeurs à l'écran, utile en rendez-vous ou en déplacement.</small></div>${sw("masquer")}</div>
     <div class="setrow"><div><b>Écran d'accueil</b><small>Revoir l'animation de connexion à l'écosystème.</small></div><button class="btn" data-act="splash">Revoir</button></div>
   </div>
   <div class="card" style="margin-bottom:16px"><h2>Hypothèses de calcul</h2>
-    <div class="setrow"><div><b>Multiple d'EBITDA par défaut</b><small>Utilisé par Falco Core quand une société n'a pas de multiple renseigné.</small></div>${ni("multiple")}</div>
-    <div class="setrow"><div><b>Inflation cible (%/an)</b><small>Utilisée par Envelo pour calculer le pouvoir d'achat réel des projections.</small></div>${ni("inflation")}</div>
-    <div class="setrow"><div><b>Prélèvements sociaux sur revenus fonciers (%)</b><small>Utilisés par Domum. Taux à vérifier selon la législation en vigueur.</small></div>${ni("psFoncier")}</div>
+    <div class="setrow"><div><b>Multiple d'EBITDA par défaut</b><small>Utilisé par Equity quand une société n'a pas de multiple renseigné.</small></div>${ni("multiple")}</div>
+    <div class="setrow"><div><b>Inflation cible (%/an)</b><small>Utilisée par Cash pour calculer le pouvoir d'achat réel des projections.</small></div>${ni("inflation")}</div>
+    <div class="setrow"><div><b>Prélèvements sociaux sur revenus fonciers (%)</b><small>Utilisés par Immo. Taux à vérifier selon la législation en vigueur.</small></div>${ni("psFoncier")}</div>
   </div>
   <div class="card" style="margin-bottom:16px"><h2>Notifications</h2>
     <div class="setrow"><div><b>Points d'attention</b><small>Être prévenu quand Fiscool détecte une optimisation.</small></div>${sw("alertes")}</div>
@@ -1927,10 +1957,10 @@ function pageSettings(){
     <div class="setrow"><div><b>Rapport mensuel</b><small>Synthèse de l'évolution du patrimoine chaque début de mois.</small></div>${sw("rapport")}</div>
   </div>
   <div class="card" style="margin-bottom:16px"><h2>Connexions</h2>
-    <div class="setrow">${logo("m1",32)}<div><b>Falco</b><small>Synchronisation bidirectionnelle des valorisations, de la trésorerie et des CCA dans Falco Core.</small></div>${fst}</div>
-    <div class="setrow">${logo("m2",32)}<div><b>Données de marché</b><small>Cours en temps réel des actions, ETF, obligations et crypto-actifs dans Tivra (Yahoo Finance, Alpha Vantage, Financial Modeling Prep).</small></div><span class="tag">Serveur requis</span></div>
+    <div class="setrow">${logo("m1",32)}<div><b>Import FEC</b><small>Valorisation, trésorerie, dettes et CCA de vos sociétés lus dans le Fichier des Écritures Comptables.</small></div><button class="btn" data-act="fec-import">Importer</button></div>
+    <div class="setrow">${logo("m2",32)}<div><b>Données de marché</b><small>Cours en temps réel des actions, ETF, obligations et crypto-actifs dans Titres (Yahoo Finance, Alpha Vantage, Financial Modeling Prep).</small></div><span class="tag">Serveur requis</span></div>
     <div class="setrow">${logo("m2",32)}<div><b>Banques et courtiers</b><small>Agrégation des comptes-titres et wallets par open banking (Powens, Flanks, Plaid).</small></div><span class="tag">Serveur requis</span></div>
-    <div class="setrow">${logo("m3",32)}<div><b>Base DVF</b><small>Estimation des biens par les ventes comparables dans Domum.</small></div><span class="tag">Serveur requis</span></div>
+    <div class="setrow">${logo("m3",32)}<div><b>Base DVF</b><small>Estimation des biens par les ventes comparables dans Immo.</small></div><span class="tag">Serveur requis</span></div>
   </div>
   <div class="card"><h2>Données</h2>
     <div class="setrow"><div><b>Exporter mes données</b><small>Fichier JSON contenant tout votre patrimoine et votre profil.</small></div><button class="btn" data-act="export">Exporter</button></div>
@@ -2085,7 +2115,7 @@ function openPrices(){
     return `<label class="f">${esc(it.nom||"Sans nom")} · ${f[1]}${it.ticker?` · ${esc(it.ticker)}`:""}<input name="${it.id}" data-f="${f[0]}" inputmode="decimal" value="${esc(it[f[0]]??"")}"></label>`; }).join("");
   dlg.innerHTML = `<form method="dialog"><div class="row" style="margin-bottom:12px">${logo("m2",36)}<h2 style="margin:0">Mettre à jour les cours</h2></div>
     <p class="small muted">Saisissez les derniers cours. Pour les actions, ETF, fonds cotés et crypto-actifs, le bouton « Actualiser les cours » interroge directement votre fournisseur de données.</p>
-    <div class="form">${rows||'<p class="muted">Aucune ligne dans Tivra.</p>'}</div>
+    <div class="form">${rows||'<p class="muted">Aucune ligne dans Titres.</p>'}</div>
     <div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn" value="cancel">Annuler</button><button class="btn primary" value="ok">Enregistrer les cours</button></div></form>`;
   dlg.returnValue=""; dlg.showModal();
   dlg.onclose = () => {
@@ -2188,9 +2218,10 @@ document.addEventListener("click", e=>{
   if(T.closest('[data-act="search-close"]') || (T.classList && T.classList.contains("search"))){ searchOpen=false; renderSearch(); return; }
   if(T.closest('[data-act="search"]')){ searchOpen=true; menuOpen=false; sq=""; renderHeader(); renderSearch(); return; }
   if(T.closest('[data-act="menu"]')){ menuOpen=!menuOpen; renderHeader(); return; }
-  if(T.closest('[data-act="falco-ex"]')){ const p=dlg.querySelector("#fjEx"); if(p){ p.hidden=!p.hidden; if(!p.hidden && !dlg.querySelector("#fjTxt").value) dlg.querySelector("#fjTxt").value=JSON.stringify(FALCO_EX,null,2); } return; }
+  if(false){ const p=dlg.querySelector("#fjEx"); if(p){ p.hidden=!p.hidden; if(!p.hidden && !dlg.querySelector("#fjTxt").value) dlg.querySelector("#fjTxt").value=JSON.stringify({},null,2); } return; }
   const pr = T.closest("[data-prof]"); if(pr){ ptab=pr.dataset.prof; go("profil"); return; }
   if(menuOpen && !T.closest(".pmenu")){ menuOpen=false; renderHeader(); }
+  const ic = T.closest("[data-incl]"); if(ic){ const k=ic.dataset.incl; S.prefs.excl=S.prefs.excl||{}; S.prefs.excl[k]=!ic.checked; if(dFocus===k) dFocus=null; persist(); render(); toast(ic.checked?`${PROD[k].brand} compté dans le patrimoine`:`${PROD[k].brand} détaché du patrimoine`); return; }
   const dp = T.closest("[data-dper]"); if(dp){ dPeriod=+dp.dataset.dper; render(); return; }
   const df = T.closest("[data-dfilter]"); if(df){ dFilter=df.dataset.dfilter; dFocus=MODS[dFilter]?dFilter:null; dAll=false; render(); return; }
   const dfo = T.closest("[data-dfocus]"); if(dfo){ const k=dfo.dataset.dfocus; dFocus = (!k||dFocus===k)?null:k; dFilter = dFocus||"all"; dAll=false; render(); return; }
@@ -2219,7 +2250,7 @@ document.addEventListener("click", e=>{
     case "api-refresh": refreshPrices(); break;
     case "bank-connect": toast("L'agrégation bancaire (Powens, Flanks, Plaid) passe par le serveur FALT : elle sera disponible avec la version hébergée."); break;
     case "import": openImport(k); break;
-    case "falco-import": openFalcoImport(); break;
+    case "fec-import": openFecImport(); break;
     case "falco-pair": { const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789", g4=()=>Array.from({length:4},()=>A[Math.floor(Math.random()*A.length)]).join(""); S.falco.key=`TRP-${g4()}-${g4()}-${g4()}`; S.falco.status="pending"; persist(); render(); toast("Clé de jumelage générée"); break; }
     case "falco-cancel": S.falco.status = S.falco.lastSync ? "synced" : "none"; S.falco.key=""; persist(); render(); break;
     case "falco-copy": try{ navigator.clipboard.writeText(S.falco.key).then(()=>toast("Clé copiée"),()=>toast("Copie impossible : sélectionnez la clé à la main")); }catch(err){ toast("Copie impossible : sélectionnez la clé à la main"); } break;
