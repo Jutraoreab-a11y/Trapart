@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Connectez-vous à FALT ou créez votre espace.">
+<title>FALT · Connexion</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Écran partagé : formulaire à gauche, panneau de marque à droite (halo corail, aperçu du patrimoine). Mêmes jetons que la landing. */
+:root{
+  color-scheme:dark;
+  --bg:#14213D; --bg2:#111C35; --surface:#1A2A4B; --raised:#213357; --input:#16243F;
+  --line:#2A3B5F; --line2:#36496F;
+  --fg:#F4EDE0; --fg2:#D5D2CC; --muted:#9AA5BD; --dim:#6F7C98;
+  --accent:#FF6B5B; --accent2:#FF8577; --accentText:#FF7A6B; --onAccent:#14213D; --accentBg:rgba(255,107,91,.14);
+  --up:#3DD6A0; --down:#F2557A; --glow:rgba(255,107,91,.32);
+  --immo:#FF9E6B; --equity:#4FD1C5; --titres:#8FB2FF; --cash:#C9A7FF;
+  --display:"Sora","Manrope",ui-sans-serif,system-ui,sans-serif;
+  --body:"Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  color-scheme:light;
+  --bg:#F4EDE0; --bg2:#EEE5D5; --surface:#FBF7F0; --raised:#F1E9DB; --input:#FFFDF9;
+  --line:#E2D8C6; --line2:#D3C7B2;
+  --fg:#14213D; --fg2:#2E3A55; --muted:#5F6A80; --dim:#8A8F9C;
+  --accent:#FF6B5B; --accent2:#FF8577; --accentText:#C8402F; --onAccent:#14213D; --accentBg:rgba(255,107,91,.12);
+  --up:#0E8F5E; --down:#C8264F; --glow:rgba(255,107,91,.22);
+  --immo:#E0703A; --equity:#0E9C8E; --titres:#2F5BD3; --cash:#7D52D6;
+}}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#F4EDE0; --bg2:#EEE5D5; --surface:#FBF7F0; --raised:#F1E9DB; --input:#FFFDF9;
+  --line:#E2D8C6; --line2:#D3C7B2;
+  --fg:#14213D; --fg2:#2E3A55; --muted:#5F6A80; --dim:#8A8F9C;
+  --accent:#FF6B5B; --accent2:#FF8577; --accentText:#C8402F; --onAccent:#14213D; --accentBg:rgba(255,107,91,.12);
+  --up:#0E8F5E; --down:#C8264F; --glow:rgba(255,107,91,.22);
+  --immo:#E0703A; --equity:#0E9C8E; --titres:#2F5BD3; --cash:#7D52D6;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#14213D; --bg2:#111C35; --surface:#1A2A4B; --raised:#213357; --input:#16243F;
+  --line:#2A3B5F; --line2:#36496F;
+  --fg:#F4EDE0; --fg2:#D5D2CC; --muted:#9AA5BD; --dim:#6F7C98;
+  --accent:#FF6B5B; --accent2:#FF8577; --accentText:#FF7A6B; --onAccent:#14213D; --accentBg:rgba(255,107,91,.14);
+  --up:#3DD6A0; --down:#F2557A; --glow:rgba(255,107,91,.32);
+  --immo:#FF9E6B; --equity:#4FD1C5; --titres:#8FB2FF; --cash:#C9A7FF;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--fg2);font:15.5px/1.55 var(--body);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+h1,h2{color:var(--fg);font-family:var(--display);font-weight:600;letter-spacing:-.025em;margin:0;text-wrap:balance}
+p{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+.shell{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);min-height:100vh}
+.left{display:flex;flex-direction:column;padding-block:28px 32px;padding-left:max(24px, env(safe-area-inset-left,0px));padding-right:24px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:440px;width:100%;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;color:var(--fg)}
+.brand b{font-family:var(--display);font-size:24px;letter-spacing:.06em;font-weight:700;line-height:1}
+.back{font-size:14px;font-weight:600;color:var(--muted)}
+.back:hover{color:var(--fg)}
+.formwrap{flex:1;display:flex;align-items:center;justify-content:center;padding-block:40px}
+.card{width:100%;max-width:440px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:32px}
+.tabs button{border:0;background:none;color:var(--muted);font:700 14px var(--body);padding:10px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--raised);color:var(--fg)}
+h1{font-size:clamp(28px,3.2vw,36px);line-height:1.1}
+.sub{color:var(--muted);margin-top:10px}
+form{display:flex;flex-direction:column;gap:16px;margin-top:28px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label.f{display:flex;flex-direction:column;gap:7px;font-size:13.5px;font-weight:700;color:var(--fg2);min-width:0}
+input[type=text],input[type=email],input[type=password]{width:100%;height:48px;border-radius:12px;border:1px solid var(--line2);background:var(--input);color:var(--fg);font:500 15px var(--body);padding:0 14px;transition:border-color .15s,box-shadow .15s}
+input::placeholder{color:var(--dim)}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accentBg)}
+.pw{position:relative}
+.pw input{padding-right:84px}
+.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--muted);font:700 12.5px var(--body);cursor:pointer;padding:6px 8px;border-radius:8px}
+.pw button:hover{color:var(--fg)}
+.hint{font-size:12.5px;color:var(--dim);font-weight:500}
+.meter{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:2px}
+.meter i{height:4px;border-radius:2px;background:var(--line2)}
+.meter[data-l="1"] i:nth-child(-n+1),.meter[data-l="2"] i:nth-child(-n+2){background:var(--accent)}
+.meter[data-l="3"] i:nth-child(-n+3),.meter[data-l="4"] i{background:var(--up)}
+.line{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13.5px}
+.line a{color:var(--accentText);font-weight:700}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--muted);cursor:pointer}
+.check input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--accent);flex:none}
+.check a{color:var(--fg2);text-decoration:underline;text-underline-offset:2px}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.plan{position:relative;border:1px solid var(--line2);border-radius:12px;padding:12px 14px;cursor:pointer;background:var(--input);display:flex;flex-direction:column;gap:2px}
+.plan input{position:absolute;opacity:0;pointer-events:none}
+.plan b{color:var(--fg);font-size:14px}
+.plan span{font-size:12.5px;color:var(--muted)}
+.plan:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 4px var(--accentBg)}
+.plan:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:12px;font:800 15px var(--body);border:1px solid var(--line2);color:var(--fg);background:transparent;cursor:pointer;width:100%;transition:background .15s,border-color .15s}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--onAccent)}
+.btn.primary:hover{background:var(--accent2);border-color:var(--accent2)}
+.btn:not(.primary):hover{border-color:var(--dim)}
+.or{display:flex;align-items:center;gap:12px;color:var(--dim);font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.err{display:none;font-size:13.5px;color:var(--down);font-weight:600}
+.err.on{display:block}
+.switch{font-size:14px;color:var(--muted);text-align:center;margin-top:24px}
+.switch button{border:0;background:none;color:var(--accentText);font:800 14px var(--body);cursor:pointer;padding:0}
+.legal{font-size:12.5px;color:var(--dim);max-width:440px;width:100%;margin:0 auto}
+
+/* Panneau de marque */
+.right{position:relative;overflow:hidden;background:var(--bg2);border-left:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;padding-block:56px;padding-left:56px;padding-right:max(56px, env(safe-area-inset-right,0px));isolation:isolate}
+.right::before{content:"";position:absolute;z-index:-1;width:720px;max-width:none;aspect-ratio:1;right:-220px;top:-160px;background:radial-gradient(closest-side,var(--glow),transparent 72%)}
+.right::after{content:"";position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--fg) 3.5%,transparent) 0 1px,transparent 1px 7px)}
+.quote{font-family:var(--display);font-size:clamp(26px,2.6vw,38px);line-height:1.15;color:var(--fg);letter-spacing:-.03em;font-weight:600;max-width:16ch}
+.quote span{color:var(--muted)}
+.mini{margin-top:40px;max-width:440px;border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:22px 22px 18px;box-shadow:0 40px 80px -40px rgba(4,9,22,.6)}
+.mini small{font-size:12.5px;color:var(--muted);font-weight:600}
+.mini .v{font-family:var(--display);font-size:34px;font-weight:600;color:var(--fg);letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin-top:2px}
+.mini .v span{font-size:.5em;color:var(--muted)}
+.pill{display:inline-block;font-weight:800;font-size:12px;border-radius:8px;padding:3px 8px;color:var(--up);background:color-mix(in srgb,var(--up) 14%,transparent);font-variant-numeric:tabular-nums}
+.mini svg{display:block;width:100%;height:80px;margin:12px 0 14px}
+.compo{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:3px}
+.compo i{display:block;height:100%}
+.leg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:12.5px;color:var(--muted)}
+.leg span{display:flex;align-items:center;gap:6px}
+.leg i{width:8px;height:8px;border-radius:2px}
+.points{list-style:none;padding:0;margin:32px 0 0;display:flex;flex-direction:column;gap:12px;font-size:14.5px;color:var(--fg2)}
+.points li{display:flex;gap:10px;align-items:center}
+.points li::before{content:"";width:12px;height:7px;border-left:2px solid var(--up);border-bottom:2px solid var(--up);transform:rotate(-45deg) translateY(-2px);flex:none}
+.note{font-size:12px;color:var(--dim);margin-top:14px}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--surface);border:1px solid var(--line2);color:var(--fg);padding:12px 16px;border-radius:12px;font-weight:600;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100vw - 32px)}
+.toast.on{opacity:1}
+
+@media (max-width:920px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .right{display:none}
+}
+@media (max-width:480px){
+  .left{padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+  .row2,.plans{grid-template-columns:minmax(0,1fr)}
+  .formwrap{padding-block:28px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="left">
+    <div class="top">
+      <a href="index.html" class="brand" aria-label="FALT, accueil">
+        <b>FALT</b>
+      </a>
+      <a href="index.html" class="back">Retour au site</a>
+    </div>
+
+    <div class="formwrap">
+      <div class="card">
+        <div class="tabs" role="tablist" aria-label="Accès">
+          <button role="tab" id="tab-login" aria-controls="login" aria-selected="true">Se connecter</button>
+          <button role="tab" id="tab-signup" aria-controls="signup" aria-selected="false">Créer mon espace</button>
+        </div>
+
+        <section id="login" role="tabpanel" aria-labelledby="tab-login">
+          <h1>Bon retour.</h1>
+          <p class="sub">Retrouvez votre patrimoine net là où vous l'avez laissé.</p>
+          <form id="fLogin" novalidate>
+            <label class="f">E-mail<input type="email" id="lEmail" autocomplete="email" placeholder="vous@societe.fr" required></label>
+            <label class="f">Mot de passe
+              <span class="pw"><input type="password" id="lPw" autocomplete="current-password" placeholder="Votre mot de passe" required><button type="button" data-show="lPw">Afficher</button></span>
+            </label>
+            <div class="line"><label class="check"><input type="checkbox" id="lRemember" checked>Rester connecté</label><a href="#" id="forgot">Mot de passe oublié ?</a></div>
+            <p class="err" id="lErr" role="alert"></p>
+            <button class="btn primary" type="submit">Se connecter</button>
+            <div class="or">ou</div>
+            <a class="btn" href="app.html#demo">Essayer la démo sans compte</a>
+          </form>
+          <p class="switch">Pas encore de compte ? <button type="button" data-go="signup">Créer mon espace</button></p>
+        </section>
+
+        <section id="signup" role="tabpanel" aria-labelledby="tab-signup" hidden>
+          <h1>Votre patrimoine net en dix minutes.</h1>
+          <p class="sub">Sans engagement. Aucun identifiant bancaire demandé.</p>
+          <form id="fSignup" novalidate>
+            <div class="row2">
+              <label class="f">Prénom<input type="text" id="sPrenom" autocomplete="given-name" placeholder="Alexandre" required></label>
+              <label class="f">Nom<input type="text" id="sNom" autocomplete="family-name" placeholder="Martin" required></label>
+            </div>
+            <label class="f">E-mail professionnel<input type="email" id="sEmail" autocomplete="email" placeholder="vous@societe.fr" required></label>
+            <label class="f">Mot de passe
+              <span class="pw"><input type="password" id="sPw" autocomplete="new-password" placeholder="10 caractères minimum" required minlength="10"><button type="button" data-show="sPw">Afficher</button></span>
+              <span class="meter" id="meter" data-l="0" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              <span class="hint" id="pwHint">10 caractères minimum, avec un chiffre et une majuscule.</span>
+            </label>
+            <fieldset style="border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:7px">
+              <legend style="font-size:13.5px;font-weight:700;color:var(--fg2);padding:0;margin-bottom:7px">Formule</legend>
+              <div class="plans">
+                <label class="plan"><input type="radio" name="plan" id="pPack" value="pack" checked><b>Pack Intégral</b><span>169 € HT / mois</span></label>
+                <label class="plan"><input type="radio" name="plan" id="pCarte" value="carte"><b>À la carte</b><span>49,99 € HT / module</span></label>
+              </div>
+            </fieldset>
+            <label class="check"><input type="checkbox" id="sCgu" required><span>J'accepte les <a href="cgu.html">conditions d'utilisation</a> et la <a href="confidentialite.html">politique de confidentialité</a>.</span></label>
+            <p class="err" id="sErr" role="alert"></p>
+            <button class="btn primary" type="submit">Créer mon espace</button>
+          </form>
+          <p class="switch">Déjà un compte ? <button type="button" data-go="login">Se connecter</button></p>
+        </section>
+      </div>
+    </div>
+    <p class="legal">FALT ne fournit pas de conseil en investissement.</p>
+  </div>
+
+  <aside class="right" aria-label="FALT">
+    <p class="quote">Immo, Equity, Titres et Cash. <span>Un seul patrimoine net.</span></p>
+    <div class="mini" role="img" aria-label="Aperçu d'un patrimoine d'exemple de 9,7 millions d'euros">
+      <small>Patrimoine net</small>
+      <div class="v">9 726 485<span>,53 €</span></div>
+      <span class="pill">+26,76 % sur 1 an</span>
+      <svg viewBox="0 0 400 80" preserveAspectRatio="none" aria-hidden="true" id="spark"></svg>
+      <div class="compo"><i style="width:26.5%;background:var(--immo)"></i><i style="width:56.1%;background:var(--equity)"></i><i style="width:8.4%;background:var(--titres)"></i><i style="width:9%;background:var(--cash)"></i></div>
+      <div class="leg"><span><i style="background:var(--immo)"></i>Immo</span><span><i style="background:var(--equity)"></i>Equity</span><span><i style="background:var(--titres)"></i>Titres</span><span><i style="background:var(--cash)"></i>Cash</span></div>
+    </div>
+    <p class="note">Données d'exemple.</p>
+    <ul class="points">
+      <li>Le FEC de votre société lu dans votre navigateur</li>
+      <li>Aucun identifiant bancaire demandé</li>
+      <li>Vos données exportables à tout moment</li>
+    </ul>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  var KEY="cockpit-fiscool";
+  function $(id){return document.getElementById(id)}
+  function toast(m){ var t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(function(){t.classList.remove("on")},2600); }
+  function show(mode){
+    var su=mode==="signup";
+    $("login").hidden=su; $("signup").hidden=!su;
+    $("tab-login").setAttribute("aria-selected",!su); $("tab-signup").setAttribute("aria-selected",su);
+    try{ history.replaceState(null,"",su?"#inscription":"#connexion"); }catch(e){}
+  }
+  show(location.hash==="#inscription"?"signup":"login");
+  window.addEventListener("hashchange",function(){ show(location.hash==="#inscription"?"signup":"login"); });
+  document.addEventListener("click",function(e){
+    var g=e.target.closest("[data-go]"); if(g){ show(g.dataset.go); return; }
+    if(e.target.id==="tab-login"){ show("login"); return; }
+    if(e.target.id==="tab-signup"){ show("signup"); return; }
+    var s=e.target.closest("[data-show]"); if(s){ var i=$(s.dataset.show), v=i.type==="password"; i.type=v?"text":"password"; s.textContent=v?"Masquer":"Afficher"; return; }
+    if(e.target.id==="forgot"){ e.preventDefault(); var em=$("lEmail").value.trim(); toast(em?"Un lien de réinitialisation sera envoyé à "+em+".":"Saisissez d'abord votre e-mail."); }
+  });
+  var emailOk=function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); };
+  function strength(p){ var l=0; if(p.length>=10) l++; if(/\d/.test(p)) l++; if(/[A-Z]/.test(p)) l++; if(/[^A-Za-z0-9]/.test(p)||p.length>=14) l++; return p?l:0; }
+  $("sPw").addEventListener("input",function(){ $("meter").dataset.l=strength(this.value); });
+  function readState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"null")||{}; }catch(e){ return {}; } }
+  function writeState(o){ try{ localStorage.setItem(KEY,JSON.stringify(o)); }catch(e){} }
+  function goApp(){ setTimeout(function(){ location.href="app.html"; },700); }
+
+  $("fLogin").addEventListener("submit",function(e){
+    e.preventDefault(); var em=$("lEmail").value.trim(), pw=$("lPw").value, err=$("lErr");
+    if(!emailOk(em)){ err.textContent="Saisissez une adresse e-mail valide."; err.classList.add("on"); $("lEmail").focus(); return; }
+    if(!pw){ err.textContent="Saisissez votre mot de passe."; err.classList.add("on"); $("lPw").focus(); return; }
+    err.classList.remove("on"); toast("Connexion…"); goApp();
+  });
+  $("fSignup").addEventListener("submit",function(e){
+    e.preventDefault(); var err=$("sErr"), pr=$("sPrenom").value.trim(), no=$("sNom").value.trim(), em=$("sEmail").value.trim(), pw=$("sPw").value;
+    var fail=function(m,el){ err.textContent=m; err.classList.add("on"); el.focus(); };
+    if(!pr) return fail("Indiquez votre prénom.",$("sPrenom"));
+    if(!no) return fail("Indiquez votre nom.",$("sNom"));
+    if(!emailOk(em)) return fail("Saisissez une adresse e-mail valide.",$("sEmail"));
+    if(strength(pw)<3) return fail("Choisissez un mot de passe d'au moins 10 caractères, avec un chiffre et une majuscule.",$("sPw"));
+    if(!$("sCgu").checked) return fail("Acceptez les conditions d'utilisation pour continuer.",$("sCgu"));
+    err.classList.remove("on");
+    // Le mot de passe n'est jamais enregistré ici : seuls le nom, l'e-mail et la formule passent à l'app.
+    var st=readState(), pack=$("pPack").checked;
+    st.profile=Object.assign(st.profile||{},{prenom:pr,nom:no,email:em});
+    st.pack=pack; st.subs=pack?{m1:true,m2:true,m3:true,m4:true}:(st.subs||{m1:false,m2:false,m3:false,m4:false});
+    writeState(st); toast("Espace créé. Ouverture de FALT…"); goApp();
+  });
+
+  // Courbe de l'aperçu
+  var x=5, v=74, d=[]; function r(){ x=(x*16807)%2147483647; return (x-1)/2147483646; }
+  for(var i=60;i>=1;i--){ v+=(100-v)/(i+4)+(r()-.45)*1.4; d.push(v); }
+  var lo=Math.min.apply(0,d)-2, hi=Math.max.apply(0,d)+2, P=d.map(function(y,i){ return (i?"L":"M")+(i/(d.length-1)*396).toFixed(1)+","+(76-(y-lo)/(hi-lo)*72).toFixed(1); }).join("");
+  var ly=76-(d[d.length-1]-lo)/(hi-lo)*72;
+  $("spark").innerHTML='<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--fg)" stop-opacity=".16"/><stop offset="1" stop-color="var(--fg)" stop-opacity="0"/></linearGradient></defs><path d="'+P+'L396,80L0,80Z" fill="url(#sg)"/><path d="'+P+'" fill="none" stroke="var(--fg)" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="396" cy="'+ly+'" r="4" fill="var(--accent)"/>';
+})();
+</script>
+</body>
+</html>

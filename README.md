@@ -1,35 +1,31 @@
 # FALT
 
-Cockpit patrimonial pour dirigeants, fondateurs et business angels : cinq applications interconnectées.
+Cockpit patrimonial pour dirigeants, fondateurs et associés : Immo, Equity, Titres et Cash réunis en un seul patrimoine net.
 
-| Application | Rôle |
+## Pages
+
+| Fichier | Rôle |
 |---|---|
-| **FALT** | Application centrale : patrimoine consolidé (Orbis) et optimisation fiscale (Fiscool) |
-| **Domum** | Immobilier et SCI : crédits (in fine, amortissement constant, annuité constante), tableau d'amortissement, régimes fiscaux, IFI |
-| **Falco Core** | Participations, trésorerie pro et CCA, synchronisation avec Falco |
-| **Tivra** | Titres financiers : 12 classes d'actifs, Grecques, YTM, vesting, cours en temps réel par clé API |
-| **Envelo** | PEA, assurance-vie, PER, livrets : allocations, projections face à l'inflation |
+| `index.html` | Landing page |
+| `connexion.html` | Connexion et inscription (`#inscription` ouvre l'onglet inscription) |
+| `app.html` | Application (`app.html#demo` charge le dossier d'exemple) |
+| `cgu.html`, `mentions-legales.html`, `confidentialite.html` | Pages légales |
 
-## Lancer en local
+Build : `npm run build` (Vite, configuration multipage dans `vite.config.mjs`).
 
-Le prototype tient dans un seul fichier, sans dépendance ni compilation :
+## Fonctions serveur (`api/`)
 
-```bash
-open index.html          # macOS
-# ou
-npx serve .              # puis http://localhost:3000
-```
+| Route | Rôle | Variables Vercel |
+|---|---|---|
+| `POST /api/prices` | Cours des actions, ETF, fonds et crypto-actifs | `PRICE_PROVIDER` (`finnhub`, `fmp` ou `alphavantage`), `PRICE_API_KEY`, `COINGECKO_API_KEY` (facultatif) |
+| `POST /api/checkout` | Ouvre le paiement Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PACK`, `STRIPE_PRICE_MODULE`, `STRIPE_AUTOMATIC_TAX` (facultatif) |
+| `POST /api/portal` | Espace client Stripe | `STRIPE_SECRET_KEY` |
+| `POST /api/webhook` | Met à jour l'abonnement après paiement | `STRIPE_WEBHOOK_SECRET` |
 
-Les données sont enregistrées dans le navigateur (localStorage). Publiée comme artifact Claude, la page les enregistre aussi dans l'espace privé de l'utilisateur.
+Les routes Stripe ont aussi besoin de `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY`. Tant que ces variables ne sont pas posées, elles répondent « paiement pas encore activé » sans rien casser.
 
-## Ce qui demande un serveur (étape suivante)
+## Reste à faire avant le lancement
 
-- Connexion OAuth2 et webhooks signés avec Falco
-- Agrégation bancaire (Powens, Flanks, Plaid)
-- Relais des appels de données de marché (Alpha Vantage, Finnhub, FMP) si le navigateur les bloque
-- Connexion universelle par lien magique, facturation des abonnements
-
-## Avertissement
-
-Les calculs fiscaux sont indicatifs (taux réglables dans les paramètres) et ne remplacent pas l'avis d'un expert-comptable ou d'un avocat fiscaliste.
-# FALT
+1. Base Supabase : comptes, table `patrimoine` et table `abonnements`, puis brancher `connexion.html` et `app.html`.
+2. Stripe : créer les deux tarifs, poser les variables, déclarer le webhook.
+3. Compléter l'adresse e-mail de contact dans `mentions-legales.html` et `confidentialite.html`.
