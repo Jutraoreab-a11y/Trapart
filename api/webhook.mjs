@@ -11,7 +11,7 @@ const periodEnd = sub => {
 };
 const rowFromSub = (sub, extra = {}) => ({
   user_id: sub.metadata && sub.metadata.user_id,
-  plan: (sub.metadata && sub.metadata.plan) === "essentiel" ? "essentiel" : "dirigeant",
+  plan: (sub.metadata && sub.metadata.plan) === "pro" ? "pro" : "ultra",
   billing: (sub.metadata && sub.metadata.billing) === "mensuel" ? "mensuel" : "annuel",
   fondateur: (sub.metadata && sub.metadata.fondateur) === "oui",
   status: sub.status,

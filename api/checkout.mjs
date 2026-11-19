@@ -1,9 +1,9 @@
 // Ouvre une session de paiement Stripe Checkout pour l'utilisateur connecté.
 // Variables :
 //   STRIPE_SECRET_KEY
-//   STRIPE_PRICE_ESSENTIEL_MENSUEL, STRIPE_PRICE_ESSENTIEL_ANNUEL
-//   STRIPE_PRICE_DIRIGEANT_MENSUEL, STRIPE_PRICE_DIRIGEANT_ANNUEL
-//   STRIPE_PRICE_FONDATEUR_MENSUEL, STRIPE_PRICE_FONDATEUR_ANNUEL (offre Dirigeant à tarif fondateur)
+//   STRIPE_PRICE_PRO_MENSUEL, STRIPE_PRICE_PRO_ANNUEL
+//   STRIPE_PRICE_ULTRA_MENSUEL, STRIPE_PRICE_ULTRA_ANNUEL
+//   STRIPE_PRICE_FONDATEUR_MENSUEL, STRIPE_PRICE_FONDATEUR_ANNUEL (offre Ultra à tarif fondateur)
 //   STRIPE_AUTOMATIC_TAX=1 (facultatif, si Stripe Tax est activé)
 // Nécessite aussi Supabase (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) pour identifier le client.
 import { json, sameOrigin } from "../lib/http.mjs";
@@ -19,9 +19,9 @@ export async function POST(request) {
   if (!user) return json({ error: "Connectez-vous pour vous abonner." }, 401);
   let body = {};
   try { body = await request.json(); } catch {}
-  const plan = body.plan === "essentiel" ? "essentiel" : "dirigeant";
+  const plan = body.plan === "pro" ? "pro" : "ultra";
   const billing = body.billing === "mensuel" ? "MENSUEL" : "ANNUEL";
-  const fondateur = plan === "dirigeant" && body.fondateur === true;
+  const fondateur = plan === "ultra" && body.fondateur === true;
   const price = process.env[`STRIPE_PRICE_${fondateur ? "FONDATEUR" : plan.toUpperCase()}_${billing}`];
   if (!price) return json({ error: "Tarif Stripe non configuré." }, 503);
 

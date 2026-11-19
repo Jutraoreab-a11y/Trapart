@@ -202,8 +202,8 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
               <legend style="font-size:13.5px;font-weight:700;color:var(--fg2);padding:0;margin-bottom:7px">Offre</legend>
               <div class="bill" role="group" aria-label="Facturation"><button type="button" data-bill="m" aria-pressed="false">Mensuel</button><button type="button" data-bill="y" aria-pressed="true">Annuel · 2 mois offerts</button></div>
               <div class="plans">
-                <label class="plan"><input type="radio" name="plan" id="pDir" value="dirigeant" checked><b>Dirigeant</b><span data-m="149 € HT / mois" data-y="1 490 € HT / an">1 490 € HT / an</span></label>
-                <label class="plan"><input type="radio" name="plan" id="pEss" value="essentiel"><b>Essentiel</b><span data-m="39 € HT / mois" data-y="390 € HT / an">390 € HT / an</span></label>
+                <label class="plan"><input type="radio" name="plan" id="pDir" value="ultra" checked><b>Ultra</b><span data-m="149 € HT / mois" data-y="1 490 € HT / an">1 490 € HT / an</span></label>
+                <label class="plan"><input type="radio" name="plan" id="pEss" value="pro"><b>Pro</b><span data-m="39 € HT / mois" data-y="390 € HT / an">390 € HT / an</span></label>
               </div>
             </fieldset>
             <p class="hint" style="margin-top:-6px">14 jours d'essai gratuit. Rien n'est prélevé avant la fin de l'essai.</p>
@@ -261,7 +261,7 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
   var billMode="y";
   function bill(m){ billMode=m; document.querySelectorAll("[data-bill]").forEach(function(b){ b.setAttribute("aria-pressed",b.dataset.bill===m); }); document.querySelectorAll(".plan [data-m]").forEach(function(el){ el.textContent=el.dataset[m]; }); }
   document.addEventListener("click",function(e){ var b=e.target.closest&&e.target.closest("[data-bill]"); if(b) bill(b.dataset.bill); });
-  (function(){ var q=new URLSearchParams(location.search); if(q.get("offre")==="essentiel") $("pEss").checked=true; bill(q.get("facturation")==="mensuel"?"m":"y"); })();
+  (function(){ var q=new URLSearchParams(location.search); if(q.get("offre")==="pro") $("pEss").checked=true; bill(q.get("facturation")==="mensuel"?"m":"y"); })();
   var emailOk=function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); };
   function strength(p){ var l=0; if(p.length>=10) l++; if(/\d/.test(p)) l++; if(/[A-Z]/.test(p)) l++; if(/[^A-Za-z0-9]/.test(p)||p.length>=14) l++; return p?l:0; }
   $("sPw").addEventListener("input",function(){ $("meter").dataset.l=strength(this.value); });
@@ -287,7 +287,7 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
     // Le mot de passe n'est jamais enregistré ici : seuls le nom, l'e-mail et la formule passent à l'app.
     var st=readState(), dir=$("pDir").checked;
     st.profile=Object.assign(st.profile||{},{prenom:pr,nom:no,email:em});
-    st.plan=dir?"dirigeant":"essentiel"; st.billing=billMode==="y"?"annuel":"mensuel";
+    st.plan=dir?"ultra":"pro"; st.billing=billMode==="y"?"annuel":"mensuel";
     st.pack=dir; st.subs={m1:dir,m2:true,m3:true,m4:true};
     writeState(st); toast("Espace créé. Ouverture de FALT…"); goApp();
   });
