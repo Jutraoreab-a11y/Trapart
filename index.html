@@ -1640,7 +1640,7 @@ function fecPanel(){
   return `<div class="card" style="margin-bottom:16px"><div class="row" style="align-items:flex-start;gap:20px;flex-wrap:wrap">
     <div style="flex:1;min-width:260px"><h2 style="margin:0 0 6px">Import FEC</h2>
       <p class="muted" style="margin:0">Déposez le Fichier des Écritures Comptables de chaque société. FALT lit tout d'un coup : valorisation, trésorerie, dettes, comptes courants d'associés et résultat pour Fiscool.</p>
-      ${socs.length?`<div style="margin-top:12px">${socs.map(i=>`<div class="kv"><span>${esc(i.nom)}</span><b>exercice au ${fmtD(new Date(i.fec.date))}</b></div>`).join("")}</div>`:""}</div>
+      ${socs.length?`<p class="small" style="margin:10px 0 0">${socs.map(i=>`<b style="color:var(--ink)">${esc(i.nom)}</b> <span class="muted">· exercice au ${fmtD(new Date(i.fec.date))}</span>`).join("<br>")}</p>`:""}</div>
     <button class="btn primary" data-act="fec-import">Importer un FEC</button></div></div>`;
 }
 function parseFEC(txt){
