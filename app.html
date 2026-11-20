@@ -1950,9 +1950,9 @@ function pageSubs(){
   <div class="row" style="margin-bottom:16px"><div class="dseg" role="group" aria-label="Facturation" style="margin-left:0">
     <button data-act="bill-set" data-bill="mensuel" aria-pressed="${!y}">Mensuel</button><button data-act="bill-set" data-bill="annuel" aria-pressed="${y}">Annuel · 2 mois offerts</button></div></div>
   <div class="pair">${card("pro")}${card("ultra")}</div>
-  <div class="card" style="margin-top:16px"><div class="kv"><span>Offre MVP</span><b>${y?"890 € HT / an":"89 € HT / mois"} pour l'offre Ultra</b></div>
+  <div class="card" style="margin-top:16px"><div class="kv"><span>FALT MVP</span><b>${y?"890 € HT / an":"89 € HT / mois"} pour l'offre Ultra</b></div>
     <p class="small muted" style="margin:8px 0 10px">Réservé aux 50 premiers clients, prix garanti tant que l'abonnement reste actif.</p>
-    <a class="btn" href="${payUrl("ultra",y,true)}" target="_blank" rel="noopener">Profiter de l'offre MVP</a></div>`;
+    <a class="btn" href="${payUrl("ultra",y,true)}" target="_blank" rel="noopener">Choisir FALT MVP</a></div>`;
 }
 function pageSettings(){
   const P=S.prefs, sw=(k)=>`<label class="switch"><input type="checkbox" data-pref="${k}" ${P[k]?"checked":""}><span></span></label>`;

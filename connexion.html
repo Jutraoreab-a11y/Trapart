@@ -207,7 +207,7 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
                 <label class="plan"><input type="radio" name="plan" id="pEss" value="pro"><b>Pro</b><span data-m="39 € HT / mois" data-y="390 € HT / an">390 € HT / an</span></label>
               </div>
             </fieldset>
-            <p class="fnd-note" id="fndNote" hidden>Offre MVP : Ultra à 89 € HT par mois ou 890 € HT par an, garanti tant que vous restez abonné.</p>
+            <p class="fnd-note" id="fndNote" hidden>FALT MVP : Ultra à 89 € HT par mois ou 890 € HT par an, garanti tant que vous restez abonné.</p>
             <p class="hint" style="margin-top:-6px">14 jours d'essai gratuit. Rien n'est prélevé avant la fin de l'essai. Vous finalisez l'abonnement sur la page de paiement sécurisée Stripe.</p>
             <label class="check"><input type="checkbox" id="sCgu" required><span>J'accepte les <a href="cgu.html">conditions d'utilisation</a> et la <a href="confidentialite.html">politique de confidentialité</a>.</span></label>
             <p class="err" id="sErr" role="alert"></p>
@@ -243,7 +243,7 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
 <script>
 (function(){
   var KEY="cockpit-fiscool";
-  // Liens de paiement Stripe (mensuel m, annuel y). « mvp » = offre Ultra au tarif MVP, réservé aux 50 premiers clients (produit Stripe « FALT Ultra Max »).
+  // Liens de paiement Stripe (mensuel m, annuel y). « mvp » = offre Ultra au tarif MVP, réservé aux 50 premiers clients (produit Stripe « FALT MVP »).
   var PAY={
     pro:{m:"https://buy.stripe.com/4gM5kEbf20Ch1med5Qd7q00", y:"https://buy.stripe.com/9B63cw2Iw3Otgh83vgd7q01"},
     ultra:{m:"https://buy.stripe.com/dRm00kaaY84Jc0S3vgd7q02", y:"https://buy.stripe.com/14A8wQgzmacRd4W7Lwd7q03"},
