@@ -836,7 +836,7 @@ const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">
 const uidGen = () => Math.random().toString(36).slice(2,10);
 const PAY = {
     pro:{m:"https://buy.stripe.com/4gM5kEbf20Ch1med5Qd7q00", y:"https://buy.stripe.com/9B63cw2Iw3Otgh83vgd7q01"},
-    ultra:{m:"https://buy.stripe.com/dRm00kaaY84Jc0S3vgd7q02", y:"https://buy.stripe.com/14A8wQgzmacRd4W7Lwd7q03"},
+    ultra:{m:"https://buy.stripe.com/dRm00kaaY84Jc0S3vgd7q02", y:"https://buy.stripe.com/6oU28sdnackZ9SK1n8d7q06"},
     mvp:{m:"https://buy.stripe.com/5kQeVe5UI0Ch4yq5Dod7q04", y:"https://buy.stripe.com/aFaaEYere2Kpe90gi2d7q05"}
   };
 const payUrl = (k, y, f) => PAY[f ? "mvp" : k][y ? "y" : "m"] + "?locale=fr" + (S.profile.email ? "&prefilled_email=" + encodeURIComponent(S.profile.email) : "");
@@ -1087,7 +1087,8 @@ async function refreshPrices(){
   S.api.last=new Date().toISOString();
   if(!j){ S.api.msg="le service de cours n'a pas répondu. Réessayez dans un instant, ou saisissez les cours à la main."; persist(); render(); toast("Cours indisponibles pour le moment"); return; }
   let ok=0, fail=0;
-  eqs.forEach(i=>{ const p=j.stocks[i.ticker.trim()]; if(p>0){ i.cours=String(p); ok++; } else fail++; });
+  const noSrc = (j.notes||[]).some(n=>/non configur/.test(n));
+  eqs.forEach(i=>{ const p=j.stocks[i.ticker.trim()]; if(p>0){ i.cours=String(p); ok++; } else if(!noSrc) fail++; });
   crs.forEach(i=>{ const p=j.cryptos[cid(i)]; if(p>0){ i.cours=String(p); ok++; } else fail++; });
   S.api.msg=`${ok} cours mis à jour${fail?`, ${fail} ticker${fail>1?"s":""} introuvable${fail>1?"s":""}`:""}${j.notes&&j.notes.length?" ; "+j.notes.join(", "):""}`;
   if(ok) S.pricesAt=S.api.last;
@@ -1553,7 +1554,7 @@ function drawHero(){
   const area=line+`L${x(data.length-1)},${Hh-pb}L0,${Hh-pb}Z`;
   let grid="";
   for(let i=0;i<4;i++){ const v=lo+(hi-lo)*(i+.5)/4, yy=y(v); grid+=`<line x1="0" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)" stroke-dasharray="2 5"/><text x="${W-pr+10}" y="${yy+4}" fill="var(--dim)" font-size="11" class="money">${compact(v)}</text>`; }
-  const nl=Math.min(6,H.length), fmt=iso=>new Date(iso+"T00:00:00").toLocaleDateString("fr-FR",DPER[dPeriod][1]===-1||DPER[dPeriod][1]>=365?{month:"short",year:"2-digit"}:{day:"numeric",month:"short"});
+  const nl=Math.min(W<520?3:W<820?4:6,H.length), fmt=iso=>new Date(iso+"T00:00:00").toLocaleDateString("fr-FR",DPER[dPeriod][1]===-1||DPER[dPeriod][1]>=365?{month:"short",year:"2-digit"}:{day:"numeric",month:"short"});
   for(let j=0;j<nl;j++){ const i=Math.round(j/(nl-1||1)*(H.length-1)); grid+=`<text x="${Math.min(W-pr-20,Math.max(20,x(i)))}" y="${Hh-6}" fill="var(--dim)" font-size="11" text-anchor="middle">${fmt(H[i][0])}</text>`; }
   const up=data[data.length-1]>=data[0], col=up?"var(--ink)":"var(--neg)", lx=x(data.length-1), ly=y(data[data.length-1]);
   el.insertAdjacentHTML("afterbegin",`<svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" role="img" aria-label="Évolution du patrimoine net">
@@ -1905,8 +1906,8 @@ function pageFiscool(){
     <div class="kv"><span>Fiscalité totale de la stratégie</span><b>${eur(r.mix.tax)}</b></div>
     <div class="kv"><span>Économie face à une distribution intégrale</span><b style="color:var(--amberText)">${eur(r.A.tax-r.mix.tax)}</b></div>
     <p class="small muted">${f.holding?"Ne distribuez à titre personnel que ce dont vous avez besoin : le reste, remonté en holding, conserve près de 99 % de sa valeur pour financer de nouveaux investissements (immobilier via SCI à l'IS, tickets Business Angel, contrat de capitalisation).":"Sans holding, l'excédent reste en réserve. Au-delà d'un excédent récurrent, la création d'une holding mérite d'être étudiée avec votre conseil."}</p>
-    <div class="row" style="margin-top:8px"><button class="btn primary" id="aiBtn" data-act="ai">Analyser mon patrimoine avec Claude</button></div>
-    <div id="aiOut" class="ai" style="margin-top:14px"></div>
+    ${window.claude&&claude.use?`<div class="row" style="margin-top:8px"><button class="btn primary" id="aiBtn" data-act="ai">Analyser mon patrimoine avec Claude</button></div>
+    <div id="aiOut" class="ai" style="margin-top:14px"></div>`:""}
   </div>
   <p class="small muted" style="margin-top:16px">Simulation indicative hors rémunération du dirigeant, cotisations sociales, intégration fiscale et apport-cession. Elle ne remplace pas l'avis d'un expert-comptable ou d'un avocat fiscaliste.</p>`;
 }
@@ -2282,8 +2283,10 @@ document.addEventListener("click", e=>{
     case "bill-set": S.billing=a.dataset.bill==="mensuel"?"mensuel":"annuel"; persist(); render(); break;
     case "sub-on": S.subs[k]=true; persist(); render(); toast(PROD[k].brand+" activé"); break;
     case "ai": runAI(); break;
-    case "export": { const ex=JSON.parse(JSON.stringify(S)); if(ex.api) ex.api.key=ex.api.key?"(masquée)":""; const blob=JSON.stringify(ex,null,2); menuOpen=false; renderHeader();
-      (window.claude&&claude.use ? claude.use("downloads") : Promise.resolve(null)).then(d=> d ? d.save({filename:"trapart-patrimoine.json",data:blob}).catch(()=>{}) : toast("Export indisponible dans cette vue")); break; }
+    case "export": { const ex=JSON.parse(JSON.stringify(S)); if(ex.api) ex.api.key=""; const blob=JSON.stringify(ex,null,2), fname="falt-patrimoine-"+new Date().toISOString().slice(0,10)+".json"; menuOpen=false; renderHeader();
+      if(window.claude&&claude.use){ claude.use("downloads").then(d=> d ? d.save({filename:fname,data:blob}).catch(()=>{}) : null); }
+      else { try{ const u=URL.createObjectURL(new Blob([blob],{type:"application/json"})); const l=document.createElement("a"); l.href=u; l.download=fname; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000); toast("Export téléchargé : "+fname); }catch(e){ toast("L'export a échoué. Réessayez depuis un autre navigateur."); } }
+      break; }
     case "reset": if(confirm("Effacer toutes les données du patrimoine ?")){ const b=blank(); S.items=b.items; S.fisc=b.fisc; S.falco=b.falco; S.hist=[]; S.histDemo=false; sel=null; persist(); render(); toast("Données effacées"); } break;
   }
 });

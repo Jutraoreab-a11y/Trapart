@@ -31,7 +31,7 @@ Le paiement passe par des liens de paiement Stripe (Payment Links), définis dan
 | Offre | Mensuel | Annuel |
 |---|---|---|
 | Pro (39 € / 390 € HT) | https://buy.stripe.com/4gM5kEbf20Ch1med5Qd7q00 | https://buy.stripe.com/9B63cw2Iw3Otgh83vgd7q01 |
-| Ultra (149 € / 1 490 € HT) | https://buy.stripe.com/dRm00kaaY84Jc0S3vgd7q02 | https://buy.stripe.com/14A8wQgzmacRd4W7Lwd7q03 |
+| Ultra (149 € / 1 490 € HT) | https://buy.stripe.com/dRm00kaaY84Jc0S3vgd7q02 | https://buy.stripe.com/6oU28sdnackZ9SK1n8d7q06 |
 | FALT MVP (89 € / 890 € HT, Ultra pour les 50 premiers clients) | https://buy.stripe.com/5kQeVe5UI0Ch4yq5Dod7q04 | https://buy.stripe.com/aFaaEYere2Kpe90gi2d7q05 |
 
 Après paiement, chaque lien doit rediriger vers `app.html?paiement=ok&offre=…&facturation=…`. Les routes `api/checkout` et `api/portal` restent disponibles pour un passage ultérieur à Stripe Checkout.
