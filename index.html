@@ -107,6 +107,18 @@ main{overflow-x:clip;background-image:repeating-linear-gradient(90deg,color-mix(
 .cta{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;margin-top:36px}
 .cta small{font-size:13.5px;color:var(--dim)}
 
+/* Captures de l'application */
+.shot{margin:0;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.shot img{display:block;width:100%;height:auto}
+.hero-shot{border-radius:22px}
+.ck-note a{color:var(--accentText);font-weight:700}
+.gal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:40px}
+.gal figure{margin:0}
+.gal .shot{display:block;border-radius:14px;transition:transform .2s}
+.gal .shot:hover{transform:translateY(-3px)}
+.gal figcaption{margin-top:14px;font-size:14.5px;color:var(--muted)}
+.gal figcaption b{display:block;color:var(--fg);font-size:16px;margin-bottom:2px}
+@media (max-width:860px){.gal{grid-template-columns:minmax(0,1fr)}}
 /* Cockpit du hero */
 .cockpit{border:1px solid var(--line);border-radius:22px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
 .ck-top{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--bg2)}
@@ -382,6 +394,7 @@ footer .sp{flex:1}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
 </style>
+
 </head>
 <body>
 <header class="nav" id="nav">
@@ -412,33 +425,11 @@ footer .sp{flex:1}
   </div>
 
   <div class="wrap">
-    <div class="cockpit" role="img" aria-label="Aperçu du tableau de bord FALT avec un patrimoine d'exemple">
+    <figure class="shot hero-shot">
       <div class="ck-top"><span class="dots"><i></i><i></i><i></i></span><span class="url">falt / vue d'ensemble</span></div>
-      <div class="ck-body">
-        <div class="ck-main">
-          <div style="display:flex;align-items:flex-start;gap:12px">
-            <div>
-              <div class="ck-lbl">Patrimoine net</div>
-              <div class="ck-big" id="net">9 726 485<small>,53 €</small></div>
-              <div class="ck-delta" id="delta"><span class="pill up">+2 024 868 €</span><span class="pill up">+26,29 %</span>sur 1 an</div>
-            </div>
-            <div class="seg" aria-hidden="true"><span>1M</span><span>3M</span><span>YTD</span><span class="on">1A</span><span>Tout</span></div>
-          </div>
-          <div class="chart" id="chart"></div>
-        </div>
-        <div class="ck-side">
-          <div class="ck-lbl">Constitution du patrimoine</div>
-          <div class="compo" id="compo"></div>
-          <div class="legend" id="legend"></div>
-          <div class="fisc">
-            <div class="t">Fiscool</div>
-            <div class="s">−51 029 €</div>
-            <p>d'impôt en remontant 169 k€ en holding plutôt qu'en dividendes.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    <p class="ck-note">Données d'exemple. Cliquez sur un interrupteur pour détacher un module du patrimoine.</p>
+      <img src="/img/falt-tableau-de-bord.webp" width="2000" height="1250" alt="Tableau de bord FALT : patrimoine net de 9,7 M€, courbe sur un an et répartition entre Immo, Equity, Titres et Cash" fetchpriority="high">
+    </figure>
+    <p class="ck-note">Capture de l'application avec le dossier d'exemple. <a href="app.html#demo">Ouvrir la démo</a></p>
     <div class="facts">
       <div class="fact"><b>4</b><span>modules pour tout le patrimoine : Immo, Equity, Titres, Cash</span></div>
       <div class="fact"><b>12</b><span>classes d'actifs financiers valorisées chacune à sa façon</span></div>
@@ -520,6 +511,21 @@ footer .sp{flex:1}
     </div>
   </section>
 
+
+  <section id="captures">
+    <div class="wrap">
+      <div class="head">
+        <div class="kicker">Dans l'application</div>
+        <h2>Ce que vous verrez dès la première connexion.</h2>
+        <p>Captures réelles de FALT avec le dossier d'exemple. Le même dossier est disponible dans la démo, sans compte.</p>
+      </div>
+      <div class="gal">
+        <figure><a class="shot" href="/img/falt-equity-fec.webp" target="_blank" rel="noopener" aria-label="Agrandir la capture"><img src="/img/falt-equity-fec.webp" width="1440" height="900" loading="lazy" alt="Fiche Equity d'une société lue depuis son FEC : chiffre d'affaires, EBE, trésorerie, dettes et valorisation"></a><figcaption><b>Equity</b>Une société lue depuis son FEC, valorisée sur un multiple d'EBE.</figcaption></figure>
+        <figure><a class="shot" href="/img/falt-immo.webp" target="_blank" rel="noopener" aria-label="Agrandir la capture"><img src="/img/falt-immo.webp" width="1440" height="900" loading="lazy" alt="Module Immo : biens, régime fiscal, capital restant dû et valeur nette"></a><figcaption><b>Immo</b>Chaque bien avec son régime, son crédit et sa valeur nette.</figcaption></figure>
+        <figure><a class="shot" href="/img/falt-fiscool.webp" target="_blank" rel="noopener" aria-label="Agrandir la capture"><img src="/img/falt-fiscool.webp" width="1440" height="900" loading="lazy" alt="Fiscool : comparaison entre dividendes personnels, remontée en holding et mise en réserve"></a><figcaption><b>Fiscool</b>Dividendes, holding ou réserve, comparés sur vos chiffres.</figcaption></figure>
+      </div>
+    </div>
+  </section>
 
   <section id="fec">
     <div class="wrap split">
@@ -770,6 +776,7 @@ footer .sp{flex:1}
   function compact(n){ return n>=1e6 ? (n/1e6).toLocaleString("fr-FR",{maximumFractionDigits:2})+" M€" : Math.round(n/1e3).toLocaleString("fr-FR")+" k€"; }
 
   function draw(){
+    if(!document.getElementById("chart")) return;
     var el=document.getElementById("chart"), W=el.clientWidth||700, H=el.clientHeight||210;
     var gross=mods.reduce(function(s,m){return s+m[2]},0), inc=mods.reduce(function(s,m,i){return s+(on[i]?m[2]:0)},0)-(on[0]?debt:0);
     var r=inc/(gross-debt), d=data.map(function(y){return y*r});
