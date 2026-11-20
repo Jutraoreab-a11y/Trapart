@@ -714,9 +714,9 @@ footer .sp{flex:1}
             <li>Points d'attention : seuil IFI, échéances, trésorerie dormante</li>
           </ul>
           <div class="fnd">
-            <b>Membres fondateurs</b>
+            <b>Offre MVP</b>
             <p>Les 50 premiers clients ont l'offre Ultra à <strong data-m="89 € HT / mois" data-y="890 € HT / an">890 € HT / an</strong>, prix garanti tant qu'ils restent abonnés.</p>
-            <a href="connexion.html?offre=ultra&fondateur=1#inscription" class="btn sm" data-plan="ultra" data-fondateur="1" style="margin-top:12px">Devenir membre fondateur</a>
+            <a href="connexion.html?offre=ultra&mvp=1#inscription" class="btn sm" data-plan="ultra" data-mvp="1" style="margin-top:12px">Profiter de l'offre MVP</a>
           </div>
         </div>
       </div>
@@ -800,7 +800,7 @@ footer .sp{flex:1}
   function bill(mode){
     document.querySelectorAll("[data-bill]").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.bill===mode); });
     document.querySelectorAll("#tarifs [data-m]").forEach(function(el){ el.innerHTML = el.dataset[mode]; });
-    document.querySelectorAll("#tarifs [data-plan]").forEach(function(a){ a.href = "connexion.html?offre="+a.dataset.plan+(a.dataset.fondateur?"&fondateur=1":"")+"&facturation="+(mode==="y"?"annuel":"mensuel")+"#inscription"; });
+    document.querySelectorAll("#tarifs [data-plan]").forEach(function(a){ a.href = "connexion.html?offre="+a.dataset.plan+(a.dataset.mvp?"&mvp=1":"")+"&facturation="+(mode==="y"?"annuel":"mensuel")+"#inscription"; });
   }
   document.addEventListener("click",function(e){ var b=e.target.closest&&e.target.closest("[data-bill]"); if(b) bill(b.dataset.bill); });
   bill("y");

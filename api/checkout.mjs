@@ -3,7 +3,7 @@
 //   STRIPE_SECRET_KEY
 //   STRIPE_PRICE_PRO_MENSUEL, STRIPE_PRICE_PRO_ANNUEL
 //   STRIPE_PRICE_ULTRA_MENSUEL, STRIPE_PRICE_ULTRA_ANNUEL
-//   STRIPE_PRICE_FONDATEUR_MENSUEL, STRIPE_PRICE_FONDATEUR_ANNUEL (offre Ultra à tarif fondateur)
+//   STRIPE_PRICE_MVP_MENSUEL, STRIPE_PRICE_MVP_ANNUEL (offre Ultra au tarif MVP)
 //   STRIPE_AUTOMATIC_TAX=1 (facultatif, si Stripe Tax est activé)
 // Nécessite aussi Supabase (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) pour identifier le client.
 import { json, sameOrigin } from "../lib/http.mjs";
@@ -21,13 +21,13 @@ export async function POST(request) {
   try { body = await request.json(); } catch {}
   const plan = body.plan === "pro" ? "pro" : "ultra";
   const billing = body.billing === "mensuel" ? "MENSUEL" : "ANNUEL";
-  const fondateur = plan === "ultra" && body.fondateur === true;
-  const price = process.env[`STRIPE_PRICE_${fondateur ? "FONDATEUR" : plan.toUpperCase()}_${billing}`];
+  const mvp = plan === "ultra" && body.mvp === true;
+  const price = process.env[`STRIPE_PRICE_${mvp ? "MVP" : plan.toUpperCase()}_${billing}`];
   if (!price) return json({ error: "Tarif Stripe non configuré." }, 503);
 
   const origin = new URL(request.url).origin;
   const existing = await getAbonnement(user.id);
-  const meta = { user_id: user.id, plan, billing: billing.toLowerCase(), fondateur: fondateur ? "oui" : "non" };
+  const meta = { user_id: user.id, plan, billing: billing.toLowerCase(), mvp: mvp ? "oui" : "non" };
   try {
     const session = await stripe("POST", "checkout/sessions", {
       mode: "subscription",

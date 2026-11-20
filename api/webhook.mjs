@@ -13,7 +13,7 @@ const rowFromSub = (sub, extra = {}) => ({
   user_id: sub.metadata && sub.metadata.user_id,
   plan: (sub.metadata && sub.metadata.plan) === "pro" ? "pro" : "ultra",
   billing: (sub.metadata && sub.metadata.billing) === "mensuel" ? "mensuel" : "annuel",
-  fondateur: (sub.metadata && sub.metadata.fondateur) === "oui",
+  mvp: (sub.metadata && sub.metadata.mvp) === "oui",
   status: sub.status,
   stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer && sub.customer.id,
   stripe_subscription_id: sub.id,

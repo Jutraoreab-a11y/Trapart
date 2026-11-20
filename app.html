@@ -837,9 +837,9 @@ const uidGen = () => Math.random().toString(36).slice(2,10);
 const PAY = {
     pro:{m:"https://buy.stripe.com/4gM5kEbf20Ch1med5Qd7q00", y:"https://buy.stripe.com/9B63cw2Iw3Otgh83vgd7q01"},
     ultra:{m:"https://buy.stripe.com/dRm00kaaY84Jc0S3vgd7q02", y:"https://buy.stripe.com/14A8wQgzmacRd4W7Lwd7q03"},
-    fondateur:{m:"https://buy.stripe.com/5kQeVe5UI0Ch4yq5Dod7q04", y:"https://buy.stripe.com/aFaaEYere2Kpe90gi2d7q05"}
+    mvp:{m:"https://buy.stripe.com/5kQeVe5UI0Ch4yq5Dod7q04", y:"https://buy.stripe.com/aFaaEYere2Kpe90gi2d7q05"}
   };
-const payUrl = (k, y, f) => PAY[f ? "fondateur" : k][y ? "y" : "m"] + "?locale=fr" + (S.profile.email ? "&prefilled_email=" + encodeURIComponent(S.profile.email) : "");
+const payUrl = (k, y, f) => PAY[f ? "mvp" : k][y ? "y" : "m"] + "?locale=fr" + (S.profile.email ? "&prefilled_email=" + encodeURIComponent(S.profile.email) : "");
 const isDir = () => S.plan==="ultra";
 const hasOverview = () => S.plan==="ultra" || S.plan==="pro";
 const has = k => isDir() || (S.plan==="pro" && k!=="m1");
@@ -1950,9 +1950,9 @@ function pageSubs(){
   <div class="row" style="margin-bottom:16px"><div class="dseg" role="group" aria-label="Facturation" style="margin-left:0">
     <button data-act="bill-set" data-bill="mensuel" aria-pressed="${!y}">Mensuel</button><button data-act="bill-set" data-bill="annuel" aria-pressed="${y}">Annuel · 2 mois offerts</button></div></div>
   <div class="pair">${card("pro")}${card("ultra")}</div>
-  <div class="card" style="margin-top:16px"><div class="kv"><span>Membres fondateurs</span><b>${y?"890 € HT / an":"89 € HT / mois"} pour l'offre Ultra</b></div>
+  <div class="card" style="margin-top:16px"><div class="kv"><span>Offre MVP</span><b>${y?"890 € HT / an":"89 € HT / mois"} pour l'offre Ultra</b></div>
     <p class="small muted" style="margin:8px 0 10px">Réservé aux 50 premiers clients, prix garanti tant que l'abonnement reste actif.</p>
-    <a class="btn" href="${payUrl("ultra",y,true)}" target="_blank" rel="noopener">Devenir membre fondateur</a></div>`;
+    <a class="btn" href="${payUrl("ultra",y,true)}" target="_blank" rel="noopener">Profiter de l'offre MVP</a></div>`;
 }
 function pageSettings(){
   const P=S.prefs, sw=(k)=>`<label class="switch"><input type="checkbox" data-pref="${k}" ${P[k]?"checked":""}><span></span></label>`;
