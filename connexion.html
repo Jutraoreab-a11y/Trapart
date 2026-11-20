@@ -107,6 +107,7 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
 .btn:not(.primary):hover{border-color:var(--dim)}
 .or{display:flex;align-items:center;gap:12px;color:var(--dim);font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.fnd-note{font-size:13.5px;color:var(--fg2);border:1px dashed var(--line2);border-radius:12px;padding:10px 12px;margin:0}
 .err{display:none;font-size:13.5px;color:var(--down);font-weight:600}
 .err.on{display:block}
 .switch{font-size:14px;color:var(--muted);text-align:center;margin-top:24px}
@@ -206,10 +207,11 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
                 <label class="plan"><input type="radio" name="plan" id="pEss" value="pro"><b>Pro</b><span data-m="39 € HT / mois" data-y="390 € HT / an">390 € HT / an</span></label>
               </div>
             </fieldset>
-            <p class="hint" style="margin-top:-6px">14 jours d'essai gratuit. Rien n'est prélevé avant la fin de l'essai.</p>
+            <p class="fnd-note" id="fndNote" hidden>Tarif membre fondateur : Ultra à 89 € HT par mois ou 890 € HT par an, garanti tant que vous restez abonné.</p>
+            <p class="hint" style="margin-top:-6px">14 jours d'essai gratuit. Rien n'est prélevé avant la fin de l'essai. Vous finalisez l'abonnement sur la page de paiement sécurisée Stripe.</p>
             <label class="check"><input type="checkbox" id="sCgu" required><span>J'accepte les <a href="cgu.html">conditions d'utilisation</a> et la <a href="confidentialite.html">politique de confidentialité</a>.</span></label>
             <p class="err" id="sErr" role="alert"></p>
-            <button class="btn primary" type="submit">Créer mon espace</button>
+            <button class="btn primary" type="submit">Créer mon espace et démarrer l'essai</button>
           </form>
           <p class="switch">Déjà un compte ? <button type="button" data-go="login">Se connecter</button></p>
         </section>
@@ -241,6 +243,13 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
 <script>
 (function(){
   var KEY="cockpit-fiscool";
+  // Liens de paiement Stripe (mensuel m, annuel y). « fondateur » = offre Ultra au tarif membres fondateurs (produit Stripe « FALT Ultra Max »).
+  var PAY={
+    pro:{m:"https://buy.stripe.com/4gM5kEbf20Ch1med5Qd7q00", y:"https://buy.stripe.com/9B63cw2Iw3Otgh83vgd7q01"},
+    ultra:{m:"https://buy.stripe.com/dRm00kaaY84Jc0S3vgd7q02", y:"https://buy.stripe.com/14A8wQgzmacRd4W7Lwd7q03"},
+    fondateur:{m:"https://buy.stripe.com/5kQeVe5UI0Ch4yq5Dod7q04", y:"https://buy.stripe.com/aFaaEYere2Kpe90gi2d7q05"}
+  };
+  var fondateur=false;
   function $(id){return document.getElementById(id)}
   function toast(m){ var t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(function(){t.classList.remove("on")},2600); }
   function show(mode){
@@ -261,7 +270,7 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
   var billMode="y";
   function bill(m){ billMode=m; document.querySelectorAll("[data-bill]").forEach(function(b){ b.setAttribute("aria-pressed",b.dataset.bill===m); }); document.querySelectorAll(".plan [data-m]").forEach(function(el){ el.textContent=el.dataset[m]; }); }
   document.addEventListener("click",function(e){ var b=e.target.closest&&e.target.closest("[data-bill]"); if(b) bill(b.dataset.bill); });
-  (function(){ var q=new URLSearchParams(location.search); if(q.get("offre")==="pro") $("pEss").checked=true; bill(q.get("facturation")==="mensuel"?"m":"y"); })();
+  (function(){ var q=new URLSearchParams(location.search); if(q.get("offre")==="pro") $("pEss").checked=true; fondateur=q.get("fondateur")==="1"; if(fondateur){ $("fndNote").hidden=false; } bill(q.get("facturation")==="mensuel"?"m":"y"); })();
   var emailOk=function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); };
   function strength(p){ var l=0; if(p.length>=10) l++; if(/\d/.test(p)) l++; if(/[A-Z]/.test(p)) l++; if(/[^A-Za-z0-9]/.test(p)||p.length>=14) l++; return p?l:0; }
   $("sPw").addEventListener("input",function(){ $("meter").dataset.l=strength(this.value); });
@@ -289,7 +298,11 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
     st.profile=Object.assign(st.profile||{},{prenom:pr,nom:no,email:em});
     st.plan=dir?"ultra":"pro"; st.billing=billMode==="y"?"annuel":"mensuel";
     st.pack=dir; st.subs={m1:dir,m2:true,m3:true,m4:true};
-    writeState(st); toast("Espace créé. Ouverture de FALT…"); goApp();
+    writeState(st);
+    var key = dir ? (fondateur ? "fondateur" : "ultra") : "pro";
+    var url = PAY[key][billMode] + "?prefilled_email=" + encodeURIComponent(em) + "&locale=fr";
+    toast("Espace créé. Redirection vers le paiement sécurisé…");
+    setTimeout(function(){ location.href = url; }, 700);
   });
 
   // Courbe de l'aperçu

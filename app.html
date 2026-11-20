@@ -834,6 +834,12 @@ const num = v => { const n = parseFloat(String(v??"").replace(/\s/g,"").replace(
 const has0 = v => v!==undefined && v!==null && String(v).trim()!=="";
 const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uidGen = () => Math.random().toString(36).slice(2,10);
+const PAY = {
+    pro:{m:"https://buy.stripe.com/4gM5kEbf20Ch1med5Qd7q00", y:"https://buy.stripe.com/9B63cw2Iw3Otgh83vgd7q01"},
+    ultra:{m:"https://buy.stripe.com/dRm00kaaY84Jc0S3vgd7q02", y:"https://buy.stripe.com/14A8wQgzmacRd4W7Lwd7q03"},
+    fondateur:{m:"https://buy.stripe.com/5kQeVe5UI0Ch4yq5Dod7q04", y:"https://buy.stripe.com/aFaaEYere2Kpe90gi2d7q05"}
+  };
+const payUrl = (k, y, f) => PAY[f ? "fondateur" : k][y ? "y" : "m"] + "?locale=fr" + (S.profile.email ? "&prefilled_email=" + encodeURIComponent(S.profile.email) : "");
 const isDir = () => S.plan==="ultra";
 const hasOverview = () => S.plan==="ultra" || S.plan==="pro";
 const has = k => isDir() || (S.plan==="pro" && k!=="m1");
@@ -1938,14 +1944,15 @@ function pageSubs(){
       <div class="price" style="font-size:34px">${(y?P.y:P.m).toLocaleString("fr-FR")} € <span class="small muted" style="font-size:14px">HT / ${y?"an":"mois"}</span></div>
       <div class="small muted">${y?`soit ${(P.y/12).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})} € HT par mois, 2 mois offerts`:`ou ${P.y.toLocaleString("fr-FR")} € HT par an, 2 mois offerts`}</div>
       <p class="muted" style="margin:0">${P.desc}.</p>
-      ${cur?`<button class="btn" disabled>Offre actuelle</button>`:`<button class="btn ${k==="ultra"?"primary":""}" data-act="plan-set" data-plan="${k}">Choisir ${P.nom}</button>`}
+      ${cur?`<button class="btn" disabled>Offre actuelle</button>`:`<a class="btn ${k==="ultra"?"primary":""}" href="${payUrl(k,y)}" target="_blank" rel="noopener">Choisir ${P.nom}</a>`}
     </div>`; };
-  return `<p class="lede">Deux offres, sans engagement, avec 14 jours d'essai gratuit. Le paiement en ligne sera activé prochainement : aucune facturation n'est déclenchée pour l'instant.</p>
+  return `<p class="lede">Deux offres, sans engagement, avec 14 jours d'essai gratuit. Le paiement s'effectue sur la page sécurisée de Stripe ; FALT n'a jamais accès à votre carte.</p>
   <div class="row" style="margin-bottom:16px"><div class="dseg" role="group" aria-label="Facturation" style="margin-left:0">
     <button data-act="bill-set" data-bill="mensuel" aria-pressed="${!y}">Mensuel</button><button data-act="bill-set" data-bill="annuel" aria-pressed="${y}">Annuel · 2 mois offerts</button></div></div>
   <div class="pair">${card("pro")}${card("ultra")}</div>
   <div class="card" style="margin-top:16px"><div class="kv"><span>Membres fondateurs</span><b>${y?"890 € HT / an":"89 € HT / mois"} pour l'offre Ultra</b></div>
-    <p class="small muted" style="margin:8px 0 0">Réservé aux 50 premiers clients, prix garanti tant que l'abonnement reste actif.</p></div>`;
+    <p class="small muted" style="margin:8px 0 10px">Réservé aux 50 premiers clients, prix garanti tant que l'abonnement reste actif.</p>
+    <a class="btn" href="${payUrl("ultra",y,true)}" target="_blank" rel="noopener">Devenir membre fondateur</a></div>`;
 }
 function pageSettings(){
   const P=S.prefs, sw=(k)=>`<label class="switch"><input type="checkbox" data-pref="${k}" ${P[k]?"checked":""}><span></span></label>`;
@@ -2318,6 +2325,8 @@ document.addEventListener("submit", e=>{
 });
 
 loadLocal();
+{ const q=new URLSearchParams(location.search);
+  if(q.get("paiement")==="ok"){ const o=q.get("offre"); if(o==="pro"||o==="ultra"){ S.plan=o; S.pack=o==="ultra"; } if(q.get("facturation")==="mensuel"||q.get("facturation")==="annuel") S.billing=q.get("facturation"); persist(); setTimeout(()=>toast("Abonnement confirmé. Bienvenue dans FALT."),3800); try{ history.replaceState(null,"",location.pathname); }catch(e){} } }
 if(location.hash==="#demo" && MKEYS.every(k=>!S.items[k].length)){ demo(); try{ history.replaceState(null,"",location.pathname); }catch(e){} }
 render();
 let seen=false; try{ seen = sessionStorage.getItem("trapart-splash")==="1"; sessionStorage.setItem("trapart-splash","1"); }catch(e){}
