@@ -200,6 +200,30 @@ dialog::backdrop{background:rgba(2,6,12,.72);backdrop-filter:blur(4px)}
 .ptabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--amberText)}
 .setrow{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
 .setrow:last-child{border-bottom:0}
+/* Claude : connecteur et clés */
+.cl-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.cl-logo{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:#D97757;color:#fff;flex:none}
+.cl-head h2{margin:0}
+.cl-sub{margin:10px 0 2px;font-size:14px;font-weight:700;color:var(--ink)}
+.cl-url{display:flex;align-items:center;gap:10px;background:var(--input);border:1px solid var(--line);border-radius:10px;padding:8px 8px 8px 12px;margin:8px 0 4px}
+.cl-url code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--text)}
+.cl-steps{margin:10px 0 0;padding-left:20px;color:var(--text);font-size:14px;line-height:1.6}
+.cl-steps li{margin:4px 0}
+.cl-steps b{color:var(--ink)}
+pre.cl-code{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;overflow:auto;color:var(--text);white-space:pre-wrap;word-break:break-all;margin:8px 0 0}
+.cl-new{border:1px solid var(--amberText);border-radius:12px;padding:14px;margin:12px 0;background:color-mix(in srgb,var(--amberText) 8%,transparent)}
+.cl-new code{display:block;font-size:13.5px;word-break:break-all;color:var(--ink);margin:8px 0 10px;user-select:all}
+.cl-form{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
+.cl-form .inp{flex:1;min-width:180px}
+.cl-key{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.cl-key:last-child{border-bottom:0}
+.cl-key b{color:var(--ink)}
+.cl-key small{display:block;color:var(--muted);font-size:12.5px}
+.cl-key code{font-size:12.5px}
+.cl-state{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--muted);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:12px 0 4px}
+.cl-state svg{flex:none;margin-top:1px}
+.cl-tabs{margin:12px 0 0}
+
 .setrow div{flex:1;min-width:0}
 .setrow b{color:var(--ink)}
 .setrow small{display:block;color:var(--muted);font-size:13px}
@@ -784,6 +808,7 @@ const blank = () => ({ v:5, plan:"ultra", billing:"annuel", pack:true, subs:{m1:
   pricesAt:"",
   hist:[], histDemo:false,
   api:{prov:"Alpha Vantage", key:"", last:"", msg:""},
+  cles:[],
   items:{m1:[],m2:[],m3:[],m4:[]},
   fisc:{resultat:300000, distrib:100, besoin:60000, pfu:31.4, holding:true} });
 let S = blank(), db = null, uid = null, page = "cockpit", sel = null, cur = null, ptab = "infos", menuOpen = false, searchOpen = false, sq = "", saveTimer = null, syncState = "local";
@@ -1955,6 +1980,84 @@ function pageSubs(){
     <p class="small muted" style="margin:8px 0 10px">Réservé aux 50 premiers clients, prix garanti tant que l'abonnement reste actif.</p>
     <a class="btn" href="${payUrl("ultra",y,true)}" target="_blank" rel="noopener">Choisir FALT MVP</a></div>`;
 }
+
+/* ---------- Claude : connecteur MCP et clés d'API ---------- */
+// Le connecteur expose le patrimoine à Claude en lecture seule (api/mcp.mjs).
+// Une clé n'est montrée qu'une fois : l'app ne garde que son préfixe et son empreinte SHA-256.
+const MCP_BASE = /(^|\.)vercel\.app$|trapart|^localhost$|^127\./.test(location.hostname) ? location.origin : "https://trapartio.vercel.app";
+const MCP_URL = MCP_BASE + "/api/mcp";
+let cleNew = null, cleForm = false, mcpTab = "app", mcpStatut = null;
+function genCle(){
+  const A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"; let out="";
+  while(out.length<32){ const b=new Uint8Array(48); crypto.getRandomValues(b); for(const x of b){ if(x<248 && out.length<32) out+=A[x%62]; } }
+  return "falt_sk_"+out;
+}
+async function sha256(t){ const h=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)); return Array.from(new Uint8Array(h),x=>x.toString(16).padStart(2,"0")).join(""); }
+function sessionHeader(){ try{ const t=localStorage.getItem("falt-session"); return t?{Authorization:"Bearer "+t}:{}; }catch(e){ return {}; } }
+async function enregistrerCle(c){
+  try{ const r=await fetch(MCP_BASE+"/api/cles",{method:"POST",headers:{"Content-Type":"application/json",...sessionHeader()},body:JSON.stringify({nom:c.nom,prefixe:c.prefixe,hash:c.hash})});
+    if(!r.ok) return false; const j=await r.json().catch(()=>null); if(j&&j.cle&&j.cle.id) c.srv=j.cle.id; return true; }
+  catch(e){ return false; }
+}
+async function revoquerCleServeur(id){ try{ await fetch(MCP_BASE+"/api/cles?id="+encodeURIComponent(id),{method:"DELETE",headers:sessionHeader()}); }catch(e){} }
+async function verifierConnecteur(){
+  if(mcpStatut) return;
+  mcpStatut="…";
+  try{ const r=await fetch(MCP_URL+"?statut",{cache:"no-store"}); const j=r.ok?await r.json():null; mcpStatut=j&&j.statut==="actif"?"actif":"inactif"; }
+  catch(e){ mcpStatut="inactif"; }
+  if(page==="profil" && ptab==="parametres") render();
+}
+function copier(t,msg){ try{ navigator.clipboard.writeText(t).then(()=>toast(msg||"Copié"),()=>toast("Copie impossible : sélectionnez le texte à la main")); }catch(e){ toast("Copie impossible : sélectionnez le texte à la main"); } }
+// Résumé envoyé au serveur avec le patrimoine : c'est ce que Claude lit, jamais vos clés.
+function claudeSnapshot(){
+  const t=totals(), lab={m3:"immo",m1:"equity",m2:"titres",m4:"cash"}, R=x=>Math.round(num(x));
+  return { maj:new Date().toISOString(), plan:S.plan, devise:"EUR",
+    patrimoine_net:R(t.netTotal), patrimoine_brut:R(t.brut), dettes:R(t.liab),
+    modules:MKEYS.filter(has).map(k=>({module:lab[k], valeur:R(t.gross[k]), inclus:incl(k), lignes:S.items[k].length})),
+    lignes:MKEYS.filter(has).flatMap(k=>S.items[k].map(it=>Object.assign({module:lab[k], nom:it.nom||"", type:it.type||"", valeur:R(itemValue(k,it))}, k==="m3"?{dette:R(m3(it).debt)}:{}))),
+    historique:(S.hist||[]).map(h=>({date:String(h[0]).slice(0,10), net:R(h[1])})),
+    fiscool:Object.assign({}, S.fisc) };
+}
+window.claudeSnapshot = claudeSnapshot;
+function claudeCard(){
+  if(mcpStatut===null) setTimeout(verifierConnecteur,0);
+  const live = mcpStatut==="actif", k = cleNew ? cleNew.cle : "falt_sk_votre_cle";
+  const tabs=[["app","Claude (web, bureau, mobile)"],["code","Claude Code"],["api","API Claude"]];
+  const steps = mcpTab==="app" ? `<ol class="cl-steps">
+      <li>Dans Claude, ouvrez <b>Paramètres → Connecteurs</b>, puis <b>Ajouter un connecteur personnalisé</b>.</li>
+      <li>Nom : <b>FALT</b>. URL : l'adresse du connecteur ci-dessus.</li>
+      <li>Cliquez sur <b>Se connecter</b> et validez avec votre compte FALT. Aucune clé à copier.</li>
+      <li>Dans une conversation, activez FALT dans le menu des outils, puis posez votre question.</li></ol>`
+    : mcpTab==="code" ? `<ol class="cl-steps"><li>Générez une clé ci-dessous, puis lancez dans votre terminal :</li></ol>
+      <pre class="cl-code">claude mcp add --transport http falt ${esc(MCP_URL)} --header "Authorization: Bearer ${esc(k)}"</pre>
+      <div class="row" style="margin-top:8px"><button class="btn" data-act="mcp-copy-cmd">Copier la commande</button></div>`
+    : `<ol class="cl-steps"><li>Pour vos propres outils, déclarez FALT comme serveur MCP dans l'API Messages :</li></ol>
+      <pre class="cl-code">"mcp_servers": [{
+  "type": "url",
+  "url": "${esc(MCP_URL)}",
+  "name": "falt",
+  "authorization_token": "${esc(k)}"
+}]</pre>`;
+  const keys = (S.cles||[]).map(c=>`<div class="cl-key"><div><b>${esc(c.nom)}</b><small><code>${esc(c.prefixe)}…</code> · créée le ${fmtD(new Date(c.cree))}${c.dernier?` · utilisée le ${fmtD(new Date(c.dernier))}`:""}${c.actif?"":" · en attente d'activation"}</small></div>
+      <button class="btn ghost" data-act="cle-revoke" data-id="${esc(c.id)}" style="color:var(--neg)">Révoquer</button></div>`).join("");
+  return `<div class="card" style="margin-bottom:16px" id="claude">
+    <div class="cl-head"><span class="cl-logo" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l1.6 6.1 5.6-3-3 5.6 6.1 1.6-6.1 1.6 3 5.6-5.6-3L12 21.5l-1.6-6.1-5.6 3 3-5.6-6.1-1.6 6.1-1.6-3-5.6 5.6 3z"/></svg></span><h2>Claude</h2><span class="tag">Lecture seule</span></div>
+    <p class="small muted" style="margin:0">Posez vos questions de patrimoine directement à Claude : « Combien vaut ma holding ? », « Quelle part de mon patrimoine est immobilière ? », « Simule 150 k€ remontés en holding ». Claude lit vos chiffres FALT et ne peut rien modifier.</p>
+    ${live?"":`<div class="cl-state">${ICON.info}<span>${mcpStatut==="…"||mcpStatut===null?"Vérification du connecteur…":"Le connecteur s'active avec les comptes FALT en ligne. Vous pouvez déjà préparer vos clés : elles fonctionneront dès l'activation."}</span></div>`}
+    <div class="cl-sub">Connecteur</div>
+    <div class="cl-url"><code>${esc(MCP_URL)}</code><button class="btn" data-act="mcp-copy">Copier</button></div>
+    <nav class="ptabs cl-tabs" role="tablist">${tabs.map(([id,l])=>`<button role="tab" data-act="mcp-tab" data-tab="${id}" aria-selected="${mcpTab===id}">${l}</button>`).join("")}</nav>
+    ${steps}
+    <div class="cl-sub" style="margin-top:20px">Clés d'API</div>
+    <p class="small muted" style="margin:0">Pour Claude Code, l'API Claude ou vos automatisations. Une clé donne accès en lecture à tout votre patrimoine : gardez-la comme un mot de passe.</p>
+    ${cleNew?`<div class="cl-new" role="status"><b>Clé « ${esc(cleNew.nom)} » créée</b><small class="muted" style="display:block">Copiez-la maintenant : elle ne sera plus affichée.</small><code>${esc(cleNew.cle)}</code>
+      <div class="row"><button class="btn primary" data-act="cle-copy">Copier la clé</button><button class="btn" data-act="cle-done">J'ai copié la clé</button></div></div>`:""}
+    ${keys?`<div style="margin-top:6px">${keys}</div>`:`<p class="small muted" style="margin:10px 0 0">Aucune clé pour l'instant.</p>`}
+    ${cleForm?`<div class="cl-form"><input class="inp" id="cleNom" maxlength="60" placeholder="Nom de la clé, par exemple « Claude Code »" autocomplete="off"><button class="btn primary" data-act="cle-create">Créer la clé</button><button class="btn" data-act="cle-cancel">Annuler</button></div>`
+      :`<div class="row" style="margin-top:12px"><button class="btn primary" data-act="cle-new">Générer une clé</button></div>`}
+  </div>`;
+}
+
 function pageSettings(){
   const P=S.prefs, sw=(k)=>`<label class="switch"><input type="checkbox" data-pref="${k}" ${P[k]?"checked":""}><span></span></label>`;
   const ni=(k)=>`<input class="inp" type="text" inputmode="decimal" data-pref="${k}" value="${esc(P[k])}" style="width:84px;text-align:right">`;
@@ -1972,6 +2075,7 @@ function pageSettings(){
     <div class="setrow"><div><b>Seuil IFI</b><small>Alerte quand l'assiette immobilière approche 1 300 000 €.</small></div>${sw("alerteIFI")}</div>
     <div class="setrow"><div><b>Rapport mensuel</b><small>Synthèse de l'évolution du patrimoine chaque début de mois.</small></div>${sw("rapport")}</div>
   </div>
+  ${claudeCard()}
   <div class="card" style="margin-bottom:16px"><h2>Connexions</h2>
     <div class="setrow">${logo("m1",32)}<div><b>Import FEC</b><small>Valorisation, trésorerie, dettes et CCA de vos sociétés lus dans le Fichier des Écritures Comptables.</small></div><button class="btn" data-act="fec-import">Importer</button></div>
     <div class="setrow">${logo("m2",32)}<div><b>Données de marché</b><small>Cours en temps réel des actions, ETF, obligations et crypto-actifs dans Titres (Yahoo Finance, Alpha Vantage, Financial Modeling Prep).</small></div><span class="tag">Serveur requis</span></div>
@@ -2276,6 +2380,19 @@ document.addEventListener("click", e=>{
     case "falco-cancel": S.falco.status = S.falco.lastSync ? "synced" : "none"; S.falco.key=""; persist(); render(); break;
     case "falco-copy": try{ navigator.clipboard.writeText(S.falco.key).then(()=>toast("Clé copiée"),()=>toast("Copie impossible : sélectionnez la clé à la main")); }catch(err){ toast("Copie impossible : sélectionnez la clé à la main"); } break;
     case "falco-oauth": toast("La connexion OAuth avec Falco nécessite le serveur FALT. Utilisez l'import d'export Falco en attendant."); break;
+    case "mcp-copy": copier(MCP_URL,"Adresse du connecteur copiée"); break;
+    case "mcp-copy-cmd": copier(`claude mcp add --transport http falt ${MCP_URL} --header "Authorization: Bearer ${cleNew?cleNew.cle:"falt_sk_votre_cle"}"`, cleNew?"Commande copiée avec votre clé":"Commande copiée : remplacez falt_sk_votre_cle par votre clé"); break;
+    case "mcp-tab": mcpTab=a.dataset.tab||"app"; render(); break;
+    case "cle-new": cleForm=true; render(); setTimeout(()=>{ const i=document.getElementById("cleNom"); if(i) i.focus(); },0); break;
+    case "cle-cancel": cleForm=false; render(); break;
+    case "cle-create": { const nom=((document.getElementById("cleNom")||{}).value||"").trim().slice(0,60) || "Clé "+((S.cles||[]).length+1);
+      const cle=genCle(), c={id:"cle_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), nom, prefixe:cle.slice(0,12), cree:new Date().toISOString(), dernier:"", actif:false};
+      sha256(cle).then(async h=>{ c.hash=h; S.cles=(S.cles||[]).concat(c); cleNew={nom,cle}; cleForm=false; persist(); render();
+        if(await enregistrerCle(c)){ c.actif=true; persist(); render(); } });
+      break; }
+    case "cle-copy": if(cleNew) copier(cleNew.cle,"Clé copiée"); break;
+    case "cle-done": cleNew=null; render(); break;
+    case "cle-revoke": { const c=(S.cles||[]).find(x=>x.id===id); if(c && confirm(`Révoquer la clé « ${c.nom} » ? Les outils qui l'utilisent n'auront plus accès à FALT.`)){ S.cles=S.cles.filter(x=>x.id!==id); if(c.srv) revoquerCleServeur(c.srv); persist(); render(); toast("Clé révoquée"); } break; }
     case "demo": demo(); break;
     case "splash": showSplash(); break;
     case "pack-on": S.plan="ultra"; persist(); render(); toast("Offre Ultra activée"); break;
@@ -2283,7 +2400,7 @@ document.addEventListener("click", e=>{
     case "bill-set": S.billing=a.dataset.bill==="mensuel"?"mensuel":"annuel"; persist(); render(); break;
     case "sub-on": S.subs[k]=true; persist(); render(); toast(PROD[k].brand+" activé"); break;
     case "ai": runAI(); break;
-    case "export": { const ex=JSON.parse(JSON.stringify(S)); if(ex.api) ex.api.key=""; const blob=JSON.stringify(ex,null,2), fname="falt-patrimoine-"+new Date().toISOString().slice(0,10)+".json"; menuOpen=false; renderHeader();
+    case "export": { const ex=JSON.parse(JSON.stringify(S)); if(ex.api) ex.api.key=""; delete ex.cles; const blob=JSON.stringify(ex,null,2), fname="falt-patrimoine-"+new Date().toISOString().slice(0,10)+".json"; menuOpen=false; renderHeader();
       if(window.claude&&claude.use){ claude.use("downloads").then(d=> d ? d.save({filename:fname,data:blob}).catch(()=>{}) : null); }
       else { try{ const u=URL.createObjectURL(new Blob([blob],{type:"application/json"})); const l=document.createElement("a"); l.href=u; l.download=fname; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000); toast("Export téléchargé : "+fname); }catch(e){ toast("L'export a échoué. Réessayez depuis un autre navigateur."); } }
       break; }
@@ -2321,6 +2438,7 @@ document.addEventListener("change", e=>{
   if(el.dataset.pref){ const k=el.dataset.pref; S.prefs[k] = el.type==="checkbox" ? el.checked : el.value; persist(); render(); if(k==="masquer") toast(el.checked?"Montants masqués":"Montants affichés"); return; }
   if(el.dataset.fisc){ const k=el.dataset.fisc; S.fisc[k] = k==="holding" ? el.value==="1" : el.value; persist(); render(); }
 });
+document.addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target && e.target.id==="cleNom"){ e.preventDefault(); const b=document.querySelector('[data-act="cle-create"]'); if(b) b.click(); } });
 document.addEventListener("submit", e=>{
   if(e.target.id!=="profForm") return; e.preventDefault();
   const fd=new FormData(e.target); Object.keys(S.profile).forEach(k=>{ if(fd.has(k)) S.profile[k]=String(fd.get(k)).trim(); });
